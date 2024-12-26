@@ -4,6 +4,10 @@ This repository contains the code of our
 [MSR 2021](https://2021.msrconf.org/details/msr-2021-technical-papers/26/S3M-Siamese-Stack-Trace-Similarity-Measure) 
 paper "S3M: Siamese Stack (Trace) Similarity Measure".
 
+# Debugpy
+
+python -m debugpy --listen 0.0.0.0:5678 --wait-for-client /home/mdafifal.mamun/research/S3M/src/main.py s3m --data_path /home/mdafifal.mamun/research/S3M/src/netbeans_stacktraces.json
+
 # Data
 
 ## NetBeans

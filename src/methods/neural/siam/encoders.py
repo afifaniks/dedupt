@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
+from functools import lru_cache
 from typing import List
 
 import torch
+from sentence_transformers import SentenceTransformer
 from torch import nn
 
 from methods.neural import device
@@ -26,7 +28,9 @@ class Encoder(ABC, nn.Module):
 
 
 class EncoderModel(Encoder):
-    def __init__(self, name: str, coder: SeqCoder, dim: int, out_dim: int = None, **kvargs):
+    def __init__(
+        self, name: str, coder: SeqCoder, dim: int, out_dim: int = None, **kvargs
+    ):
         super(EncoderModel, self).__init__()
         self.coder = coder
         self.word_embeddings = nn.Embedding(len(coder), dim)
@@ -54,9 +58,21 @@ class EncoderModel(Encoder):
 
 
 class LSTMEncoder(EncoderModel):
-    def __init__(self, coder: SeqCoder, dim: int = 50, hid_dim: int = 200, bidir: bool = True, **kvargs):
-        super(LSTMEncoder, self).__init__(f"lstm_frames.bidir={bidir},hdim={hid_dim}",
-                                          coder, dim, out_dim=hid_dim, **kvargs)
+    def __init__(
+        self,
+        coder: SeqCoder,
+        dim: int = 50,
+        hid_dim: int = 200,
+        bidir: bool = True,
+        **kvargs,
+    ):
+        super(LSTMEncoder, self).__init__(
+            f"lstm_frames.bidir={bidir},hdim={hid_dim}",
+            coder,
+            dim,
+            out_dim=hid_dim,
+            **kvargs,
+        )
         self.hidden_dim = hid_dim // 2 if bidir else hid_dim
         self.bidir = bidir
         self.lstm_forward = nn.LSTM(dim, self.hidden_dim)
@@ -73,4 +89,54 @@ class LSTMEncoder(EncoderModel):
         return out
 
     def opt_params(self) -> List[torch.tensor]:
-        return list(self.lstm_forward.parameters()) + (list(self.lstm_backward.parameters()) if self.bidir else [])
+        return list(self.lstm_forward.parameters()) + (
+            list(self.lstm_backward.parameters()) if self.bidir else []
+        )
+
+
+class TransformerEncoder:
+    def __init__(
+        self,
+        coder: SeqCoder,
+        model_name: str = "models/mpnet-base-eclipse/final",
+        out_dim: int = 768,
+    ):
+        # super(TransformerEncoder, self).__init__(
+        #     f"transformer_{model_name}", None, dim=384, out_dim=out_dim, **kvargs
+        # )
+        super(TransformerEncoder, self).__init__()
+        self.transformer = SentenceTransformer(model_name)
+        self.output_dim = out_dim
+        self.coder = coder
+
+    @lru_cache(maxsize=200_000)
+    def forward(self, stack_id: int) -> torch.Tensor:
+        frames = self.coder(stack_id, transformer=True)
+        emb = self.transformer.encode("\n".join(frames), convert_to_tensor=True)
+        # print(emb.shape)
+        # exit()
+        return emb
+
+    def opt_params(self) -> list:
+        return list(self.transformer.parameters())
+
+    def out_dim(self) -> int:
+        return self.output_dim
+
+    def name(self) -> str:
+        return self._name
+
+    # @lru_cache(maxsize=200_000)
+    def forward_all(self, stack_ids: list) -> torch.Tensor:
+        # Process all stack_ids in batch
+        frames_batch = [
+            self.coder(stack_id, transformer=True) for stack_id in stack_ids
+        ]
+
+        # Join frames for each stack_id into a single string
+        sentences = ["\n".join(frames) for frames in frames_batch]
+
+        # Encode the entire batch of sentences at once
+        embeddings = self.transformer.encode(sentences, convert_to_tensor=True)
+
+        return embeddings

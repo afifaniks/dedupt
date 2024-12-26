@@ -1,6 +1,5 @@
-from typing import Iterable, List
-
 import os
+from typing import Iterable, List
 
 from data.buckets.bucket_data import BucketData, StackAdditionEvent
 from data.buckets.event_state_model import EventStateModel, StackAdditionState
@@ -20,14 +19,21 @@ class BucketDataset:
 
         self.train_done = False
         self.test_done = False
+        self.total_events = None
 
-    def time_slice_events(self, start: float, finish: float) -> List[StackAdditionEvent]:
-        return [event for event in self.events if start <= event.ts < finish]
+    def time_slice_events(
+        self, start: float, finish: float
+    ) -> List[StackAdditionEvent]:
+        valid_events = [event for event in self.events if start <= event.ts < finish]
+        self.total_events = len(valid_events)
+        return valid_events
 
     def _cached_event_state(self, until_day: float = None) -> EventStateModel:
         if until_day is None:
             return EventStateModel(self.name, self.warmup_days)
-        event_model = EventStateModel(self.name, self.warmup_days)  # , self.warmup_days remove it for final state for irving
+        event_model = EventStateModel(
+            self.name, self.warmup_days
+        )  # , self.warmup_days remove it for final state for irving
 
         if os.path.exists(event_model.file_name(until_day)):
             event_model.load(until_day)
@@ -47,19 +53,23 @@ class BucketDataset:
 
         return event_model
 
-    def reset(self) -> 'BucketDataset':
+    def reset(self) -> "BucketDataset":
         self.train_done = False
         self.test_done = False
         return self
 
     def train_stacks(self) -> List[int]:
         if self._train_stacks is None:
-            event_model = self._cached_event_state(self.warmup_days + self.train_days + self.val_days)
+            event_model = self._cached_event_state(
+                self.warmup_days + self.train_days + self.val_days
+            )
             self._train_stacks = list(event_model.all_seen_stacks())
             self._train_stacks = sorted(self._train_stacks)
         return self._train_stacks
 
-    def generate_events(self, start: float, longitude: float) -> Iterable[StackAdditionState]:
+    def generate_events(
+        self, start: float, longitude: float
+    ) -> Iterable[StackAdditionState]:
         event_model = self._cached_event_state(start)
         return event_model.collect(self.time_slice_events(start, start + longitude))
 
@@ -70,4 +80,6 @@ class BucketDataset:
         return self.generate_events(self.warmup_days + self.train_days, self.val_days)
 
     def test(self) -> Iterable[StackAdditionState]:
-        return self.generate_events(self.warmup_days + self.train_days + self.val_days, self.test_days)
+        return self.generate_events(
+            self.warmup_days + self.train_days + self.val_days, self.test_days
+        )

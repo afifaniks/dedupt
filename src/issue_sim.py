@@ -9,16 +9,28 @@ from evaluation.issue_sim import paper_metrics_iter
 from methods.classic.hyperopt import PairStackBasedIssueHyperoptModel
 from methods.neural.train_issue_sim import train_issue_model
 from methods.pair_stack_issue_model import MaxIssueScorer, PairStackBasedSimModel
-from models_factory import create_neural_model, create_classic_model
-from utils import set_seed, random_seed
+from models_factory import create_classic_model, create_neural_model
+from utils import random_seed, set_seed
 
 
-def classic_issues(bucket_data: BucketData, method: str,
-                   max_len: Optional[int] = None, trim_len: int = 0):
+def classic_issues(
+    bucket_data: BucketData,
+    method: str,
+    max_len: Optional[int] = None,
+    trim_len: int = 0,
+):
     set_seed(random_seed)
     print("Dataset:", bucket_data.name)
-    print("train_days", bucket_data.train_days, "test_days", bucket_data.test_days,
-          "warmup_days", bucket_data.warmup_days, "val_days", bucket_data.val_days)
+    print(
+        "train_days",
+        bucket_data.train_days,
+        "test_days",
+        bucket_data.test_days,
+        "warmup_days",
+        bucket_data.warmup_days,
+        "val_days",
+        bucket_data.val_days,
+    )
     bucket_data.load()
     print("Load data")
     stack_loader = bucket_data.stack_loader()
@@ -28,7 +40,9 @@ def classic_issues(bucket_data: BucketData, method: str,
 
     start = time()
 
-    model = create_classic_model(stack_loader, method, max_len, trim_len, bucket_data.sep)
+    model = create_classic_model(
+        stack_loader, method, max_len, trim_len, bucket_data.sep
+    )
     print("Create model")
     model.fit([], unsup_stacks)
     print("Fit model")
@@ -49,24 +63,52 @@ def classic_issues(bucket_data: BucketData, method: str,
     print("Time to eval", time() - start)
 
 
-def neural_issues(bucket_data: BucketData,
-                  max_len: Optional[int] = None, trim_len: int = 0,
-                  loss_name: str = 'point', hyp_top_stacks: int = 20, hyp_top_issues: int = 5,
-                  epochs: int = 1):
+def neural_issues(
+    bucket_data: BucketData,
+    max_len: Optional[int] = None,
+    trim_len: int = 0,
+    loss_name: str = "point",
+    hyp_top_stacks: int = 20,
+    hyp_top_issues: int = 5,
+    epochs: int = 2,
+):
     set_seed(random_seed)
     print("Dataset:", bucket_data.name)
-    print("train_days", bucket_data.train_days, "test_days", bucket_data.test_days,
-          "warmup_days", bucket_data.warmup_days, "val_days", bucket_data.val_days, 'loss_name', loss_name)
+    print("Method: all-mpnet-v2")
+    print("Trim: ", trim_len)
+    print(
+        "train_days",
+        bucket_data.train_days,
+        "test_days",
+        bucket_data.test_days,
+        "warmup_days",
+        bucket_data.warmup_days,
+        "val_days",
+        bucket_data.val_days,
+        "loss_name",
+        loss_name,
+    )
     bucket_data.load()
     stack_loader = bucket_data.stack_loader()
     dataset = BucketDataset(bucket_data)
     unsup_stacks = dataset.train_stacks()
 
     model = create_neural_model(stack_loader, unsup_stacks, max_len, trim_len)
+    print("Model")
+    print(model)
 
     optimizers = [torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=0.0)]
-    train_issue_model(model, dataset, loss_name, optimizers,
-                      epochs=epochs, batch_size=10, period=100, selection_from_event_num=4, writer=None)
+    train_issue_model(
+        model,
+        dataset,
+        loss_name,
+        optimizers,
+        epochs=epochs,
+        batch_size=25,
+        period=10000,
+        selection_from_event_num=4,
+        writer=None,
+    )
 
     ps_model = PairStackBasedSimModel(model, MaxIssueScorer())
 

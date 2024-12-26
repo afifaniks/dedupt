@@ -1,0 +1,12 @@
+dataset/
+out/
+__pycache__/
+datasets/
+models/
+output/
+.vscode/
+wandb/
+tmp_trainer/
+checkpoints/
+.env
+nohup.out

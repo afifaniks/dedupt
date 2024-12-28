@@ -110,6 +110,7 @@ def train_issue_model(
     print("Time to score validation data:", time() - start)
 
     n_iter = 0
+    print("Total epochs:", epochs)
     for epoch in range(epochs):
         data_gen.reset()
         for i, event in tqdm(

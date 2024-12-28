@@ -98,13 +98,14 @@ class TransformerEncoder:
     def __init__(
         self,
         coder: SeqCoder,
-        model_name: str = "models/mpnet-base-eclipse/final",
+        model_name: str = "models/bge-base-combined_10/final",
         out_dim: int = 768,
     ):
         # super(TransformerEncoder, self).__init__(
         #     f"transformer_{model_name}", None, dim=384, out_dim=out_dim, **kvargs
         # )
         super(TransformerEncoder, self).__init__()
+        print(f"Loading transformer model: {model_name}")
         self.transformer = SentenceTransformer(model_name)
         self.output_dim = out_dim
         self.coder = coder
@@ -112,9 +113,9 @@ class TransformerEncoder:
     @lru_cache(maxsize=200_000)
     def forward(self, stack_id: int) -> torch.Tensor:
         frames = self.coder(stack_id, transformer=True)
-        emb = self.transformer.encode("\n".join(frames), convert_to_tensor=True)
-        # print(emb.shape)
-        # exit()
+        frames = self.format_stack(frames)
+        emb = self.transformer.encode(frames, convert_to_tensor=True)
+
         return emb
 
     def opt_params(self) -> list:
@@ -125,6 +126,12 @@ class TransformerEncoder:
 
     def name(self) -> str:
         return self._name
+
+    def format_stack(self, stack):
+        # Select last 10 frames
+        stack = list(dict.fromkeys(stack))
+        stack = stack[-10:]
+        return "\n".join([f"{i+1}: {frame}" for i, frame in enumerate(stack)])
 
     # @lru_cache(maxsize=200_000)
     def forward_all(self, stack_ids: list) -> torch.Tensor:

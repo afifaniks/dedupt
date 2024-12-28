@@ -1,3 +1,5 @@
+import json
+
 import matplotlib.pyplot as plt
 import torch
 from sentence_transformers import (
@@ -26,55 +28,63 @@ from preprocess.tokenizers import SimpleTokenizer
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
 
-model = SentenceTransformer("all-mpnet-base-v2")
+model = SentenceTransformer("BAAI/bge-base-en")
 print(f"Model sequence length: {model.max_seq_length}")
-# model.max_seq_length = 1024
-
-# Check trainable parameters
-# for name, param in model.named_parameters():
-#     if param.requires_grad:
-#         print(name)
-# print(model.encode(["Hello, World!"], convert_to_tensor=True).shape)
-
-# Count number of trainable parameters
-# num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-# print(f"Number of trainable parameters: {num_params}")
-# exit()
-# model.to(device)
 
 # Find model size in CUDA
 print(f"Model size: {torch.cuda.memory_allocated() / 1024 ** 3:.2f} GB")
 
 
-dataset_key = "eclipse_pretrain"
-run_name = "mpnet-base-eclipse"
+dataset_key = "combined_pretrain_10"
+run_name = "bge-base-combined_10"
 generate_dataset = True
 batch_size = 16
 eval_size = 1000
-num_frames = 8
+num_frames = 10
+num_train_pairs = 5
+num_test_pairs = 1
+# trim_length = 0
+frame_freq = {}
+
+# Print all training parameters
+print("Train pair:", num_train_pairs, "Test pair:", num_test_pairs)
 
 
 def format_stack(stack):
-    # Select last 10 frames
+    # Remove duplicate frames
+    stack = list(dict.fromkeys(stack))
     stack = stack[-num_frames:]
     return "\n".join([f"{i+1}: {frame}" for i, frame in enumerate(stack)])
 
 
-def get_data_row(coder, event, similar_stack_id, dissimilar_stack_id):
+def get_data_row(
+    coder, event, similar_stack_id, dissimilar_stack_id, add_to_freq=False
+):
+    anchor_frames = coder(event.st_id, transformer=True)
+    positive_frames = coder(similar_stack_id, transformer=True)
+    negative_frames = coder(dissimilar_stack_id, transformer=True)
+
+    if add_to_freq:
+        for frames in [anchor_frames, positive_frames, negative_frames]:
+            for frame in frames:
+                frame_freq[frame] = frame_freq.get(frame, 0) + 1
+
     return {
-        "anchor": format_stack(coder(event.st_id, transformer=True)),
-        "positive": format_stack(coder(similar_stack_id, transformer=True)),
-        "negative": format_stack(coder(dissimilar_stack_id, transformer=True)),
+        "anchor": format_stack(anchor_frames),
+        "positive": format_stack(positive_frames),
+        "negative": format_stack(negative_frames),
     }
 
 
-if generate_dataset:
-    triplet_selector_train = RandomTripletSelector(4)
-    triplet_selector_eval = RandomTripletSelector(1)
+def generate_dataset_for_train_test(
+    bucket_name, dataset_path, num_train_pairs, num_test_pairs, trim_length
+):
+    triplet_selector_train = RandomTripletSelector(num_train_pairs)
+    triplet_selector_eval = RandomTripletSelector(num_test_pairs)
     print("Load bucket data...")
     bucket_data = OtherBucketData(
-        "eclipse",
-        "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/eclipse_2018/eclipse_stacktraces.json",
+        bucket_name,
+        dataset_path,
         3850,
         700,
         350,
@@ -87,7 +97,7 @@ if generate_dataset:
 
     data_gen.reset()
 
-    stack2seq = Stack2Seq(cased=False, trim_len=0, sep=".")
+    stack2seq = Stack2Seq(cased=False, trim_len=trim_length, sep=".")
 
     coder = SeqCoder(
         stack_loader, stack2seq, SimpleTokenizer(), min_freq=0, max_len=None
@@ -105,7 +115,13 @@ if generate_dataset:
             similar_stack_ids, dissimilar_stack_ids
         ):
             train_data.append(
-                get_data_row(coder, event, similar_stack_id, dissimilar_stack_id)
+                get_data_row(
+                    coder,
+                    event,
+                    similar_stack_id,
+                    dissimilar_stack_id,
+                    add_to_freq=False,
+                )
             )
 
     for i, event in tqdm(enumerate(data_gen.test()), desc="Step"):
@@ -117,9 +133,37 @@ if generate_dataset:
                 get_data_row(coder, event, similar_stack_id, dissimilar_stack_id)
             )
 
+    return train_data, test_data
+
+
+if generate_dataset:
+    all_train = []
+    all_test = []
+
+    # Load from netbeans bucket
+    nb_train, nb_test = generate_dataset_for_train_test(
+        "netbeans",
+        "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/netbeans_2016/netbeans_stacktraces.json",
+        num_train_pairs,
+        num_test_pairs,
+        0,
+    )
+    ec_train, ec_test = generate_dataset_for_train_test(
+        "eclipse",
+        "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/eclipse_2018/eclipse_stacktraces.json",
+        num_train_pairs,
+        num_test_pairs,
+        2,
+    )
+
+    all_train.extend(nb_train)
+    all_train.extend(ec_train)
+    all_test.extend(nb_test)
+    all_test.extend(ec_test)
+
     # Convert train_data list to a Dataset
-    train_dataset = Dataset.from_list(train_data)
-    test_dataset = Dataset.from_list(test_data)
+    train_dataset = Dataset.from_list(all_train)
+    test_dataset = Dataset.from_list(all_test)
     train_dataset.save_to_disk(f"datasets/{dataset_key}_train")
     test_dataset.save_to_disk(f"datasets/{dataset_key}_eval")
 
@@ -187,7 +231,7 @@ args = SentenceTransformerTrainingArguments(
     # Required parameter:
     output_dir=f"models/{run_name}",
     # Optional training parameters:
-    num_train_epochs=3,
+    num_train_epochs=2,
     per_device_train_batch_size=batch_size,
     per_device_eval_batch_size=batch_size,
     learning_rate=2e-5,
@@ -197,11 +241,14 @@ args = SentenceTransformerTrainingArguments(
     batch_sampler=BatchSamplers.NO_DUPLICATES,  # MultipleNegativesRankingLoss benefits from no duplicate samples in a batch
     # Optional tracking/debugging parameters:
     eval_strategy="steps",
-    eval_steps=500,
+    eval_steps=200,
     save_strategy="steps",
-    save_steps=100,
+    save_steps=200,
     save_total_limit=2,
     logging_steps=50,
+    load_best_model_at_end=True,  # Enable saving the best model
+    metric_for_best_model="eval_loss",  # Specify the metric to monitor
+    greater_is_better=False,
     # run_name=run_name,  # Will be used in W&B if `wandb` is installed
 )
 

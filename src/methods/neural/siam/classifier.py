@@ -101,6 +101,9 @@ class StackClassifier(nn.Module):
             )
 
     def forward(self, v1: torch.tensor, v2: torch.tensor) -> torch.tensor:
+        v1 = v1.cuda()
+        v2 = v2.cuda()
+
         if self.num_layers == 0:
             cl = torch.exp(-(v1 - v2).norm(p=2, dim=0)).view(1, 1)
             return torch.cat((1 - cl, cl))

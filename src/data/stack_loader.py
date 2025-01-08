@@ -102,7 +102,7 @@ class JsonStackLoaderForCpp(StackLoader):
                     # Normalize the function name
                     function_name = function_name.lower()
                     function_name = re.sub(
-                        r"^__gi__", "", function_name
+                        r"^_+gi_+", "", function_name
                     )  # Remove __GI__ if at the start
                     function_name = re.sub(
                         r"^_+", "", function_name
@@ -120,6 +120,9 @@ class JsonStackLoaderForCpp(StackLoader):
                         )  # Remove non-alphanumeric except '/'
                         file_path = file_path.lower()  # Convert to lowercase
                         file_path = file_path.split("/")[-1]
+                        file_path = re.sub(
+                            r"\.+", ".", file_path
+                        )
 
                     # # Process the dylib path, if available
                     dylib_path = frame.get("dylib", None)
@@ -130,6 +133,9 @@ class JsonStackLoaderForCpp(StackLoader):
                         )  # Remove non-alphanumeric except '/'
                         dylib_path = dylib_path.lower()  # Convert to lowercase
                         dylib_path = dylib_path.split("/")[-1]
+                        dylib_path = re.sub(
+                            r"\.+", ".", dylib_path
+                        )
 
                     # Construct the normalized representation
                     normalized_frame = function_name

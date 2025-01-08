@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Dict, Tuple, Any, List
+from typing import Any, Dict, List, Tuple
 
-from hyperopt import hp, fmin, tpe, space_eval
+from hyperopt import fmin, hp, space_eval, tpe
 
 from evaluation.issue_sim import map_metric
 from evaluation.stack_sim import auc_model
@@ -30,7 +30,10 @@ class HyperoptModel(ABC):
         params = self.params_edges()
         if params is None or len(params) == 0:
             return
-        space = {name: hp.uniform(name, edges[0], edges[1]) for name, edges in self.params_edges().items()}
+        space = {
+            name: hp.uniform(name, edges[0], edges[1])
+            for name, edges in self.params_edges().items()
+        }
         best = fmin(objective, space, algo=tpe.suggest, max_evals=max_evals)
         print("Top params", space_eval(space, best))
         self.set_params(space_eval(space, best))
@@ -44,7 +47,9 @@ class SimStackHyperoptModel(SimStackModel, HyperoptModel, ABC):
     def score_model(self, data: Any):
         return 1 - auc_model(self, data, full=False)[0]
 
-    def find_params(self, sim_val_data: List[Tuple[int, int, int]]) -> 'SimStackHyperoptModel':
+    def find_params(
+        self, sim_val_data: List[Tuple[int, int, int]]
+    ) -> "SimStackHyperoptModel":
         self.find_hyperparams(sim_val_data)
         return self
 
@@ -63,9 +68,8 @@ class PairStackBasedIssueHyperoptModel(PairStackBasedSimModel, HyperoptModel):
     def score_model(self, data: Any):
         new_preds = self.predict(data.validation())
         score = map_metric(new_preds)
-        print("MRR:", score)
         return 1 - score
 
-    def find_params(self, val_data: Any) -> 'PairStackBasedIssueHyperoptModel':
+    def find_params(self, val_data: Any) -> "PairStackBasedIssueHyperoptModel":
         self.find_hyperparams(val_data)
         return self

@@ -1,3 +1,4 @@
+import warnings
 from abc import ABC, abstractmethod
 from functools import lru_cache
 from typing import List
@@ -6,6 +7,7 @@ import torch
 from sentence_transformers import SentenceTransformer
 from torch import nn
 
+from data.formatters import StackFormatter
 from methods.neural import device
 from preprocess.seq_coder import SeqCoder
 
@@ -98,7 +100,8 @@ class TransformerEncoder:
     def __init__(
         self,
         coder: SeqCoder,
-        model_name: str = "models/bge-base-combined_10/final",
+        stack_formatter: StackFormatter,
+        model_name: str = "models/bge-base-gnome/final",
         out_dim: int = 768,
     ):
         # super(TransformerEncoder, self).__init__(
@@ -107,13 +110,15 @@ class TransformerEncoder:
         super(TransformerEncoder, self).__init__()
         print(f"Loading transformer model: {model_name}")
         self.transformer = SentenceTransformer(model_name)
+        print(f"Selected formatter: {stack_formatter.name()}")
+        self.stack_formatter = stack_formatter
         self.output_dim = out_dim
         self.coder = coder
 
     @lru_cache(maxsize=200_000)
     def forward(self, stack_id: int) -> torch.Tensor:
         frames = self.coder(stack_id, transformer=True)
-        frames = self.format_stack(frames)
+        frames = self.stack_formatter.format(frames)
         emb = self.transformer.encode(frames, convert_to_tensor=True)
 
         return emb
@@ -127,10 +132,16 @@ class TransformerEncoder:
     def name(self) -> str:
         return self._name
 
+    # Make the method deprecated
     def format_stack(self, stack):
+        warnings.warn(
+            "The 'format_stack' method is deprecated and will be removed",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         # Select last 10 frames
         stack = list(dict.fromkeys(stack))
-        stack = stack[-10:]
+        stack = [frame for frame in stack if frame.lower() != "none"]
         return "\n".join([f"{i+1}: {frame}" for i, frame in enumerate(stack)])
 
     # @lru_cache(maxsize=200_000)

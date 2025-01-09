@@ -76,8 +76,10 @@ class JsonStackLoader(StackLoader):
 
 
 class JsonStackLoaderForCpp(StackLoader):
-    def __init__(self, reports_path: str):
+    def __init__(self, reports_path: str, include_file_path: bool = False):
+        print("Selected StackLoader for C++")
         self.reports_path = reports_path
+        self.include_file_path = include_file_path
         self.reports = {}
 
         raw_reports = json.load(open(reports_path, "r"))
@@ -86,14 +88,20 @@ class JsonStackLoaderForCpp(StackLoader):
                 continue
 
             stacktrace = report["stacktrace"]
+            raw_frames = None
             if isinstance(stacktrace, list):
-                stacktrace = stacktrace[0]
-            st_id = report["bug_id"]
-            exception = stacktrace["exception"] or []
-            if isinstance(exception, str):
-                exception = [exception]
+                all_stacktraces = []
+                for st in stacktrace:
+                    all_stacktraces.extend(st["frames"])
+                raw_frames = all_stacktraces
+            else:
+                raw_frames = stacktrace["frames"]
 
-            raw_frames = stacktrace["frames"]
+            st_id = report["bug_id"]
+            # exception = stacktrace["exception"] or []
+            # if isinstance(exception, str):
+            #     exception = [exception]
+
             frames = []
 
             for frame in raw_frames:
@@ -111,47 +119,49 @@ class JsonStackLoaderForCpp(StackLoader):
                         r"_+", "_", function_name
                     )  # Replace double underscores
 
-                    # Process the file path, if available
-                    file_path = frame.get("file", None)
-                    if file_path:
-                        # Normalize the file path (e.g., remove special characters and simplify)
-                        file_path = re.sub(
-                            r"[^a-zA-Z0-9/\.]", "", file_path
-                        )  # Remove non-alphanumeric except '/'
-                        file_path = file_path.lower()  # Convert to lowercase
-                        file_path = file_path.split("/")[-1]
-                        file_path = re.sub(
-                            r"\.+", ".", file_path
-                        )
-
-                    # # Process the dylib path, if available
-                    dylib_path = frame.get("dylib", None)
-                    if dylib_path:
-                        # Normalize the dylib path
-                        dylib_path = re.sub(
-                            r"[^a-zA-Z0-9/\.]", "", dylib_path
-                        )  # Remove non-alphanumeric except '/'
-                        dylib_path = dylib_path.lower()  # Convert to lowercase
-                        dylib_path = dylib_path.split("/")[-1]
-                        dylib_path = re.sub(
-                            r"\.+", ".", dylib_path
-                        )
-
-                    # Construct the normalized representation
-                    normalized_frame = function_name
-                    if file_path:
-                        normalized_frame += f" at {file_path}"
-                    elif dylib_path:
-                        normalized_frame += f" at {dylib_path}"
+                    if self.include_file_path:
+                        normalized_frame = self._normalize_frame(function_name, frame)
 
                     frames.append(normalized_frame)
 
             # frames = [frame["function"] for frame in raw_frames]
 
-            self.reports[st_id] = Stack(st_id, report["creation_ts"], exception, frames)
+            self.reports[st_id] = Stack(st_id, report["creation_ts"], [], frames)
 
     def name(self) -> str:
         return "json_loader"
 
     def __call__(self, id: int) -> Stack:
         return self.reports[id]
+
+    def _normalize_frame(self, function_name: str, frame: dict) -> str:
+        # Process the file path, if available
+        file_path = frame.get("file", None)
+        if file_path:
+            # Normalize the file path (e.g., remove special characters and simplify)
+            file_path = re.sub(
+                r"[^a-zA-Z0-9/\.]", "", file_path
+            )  # Remove non-alphanumeric except '/'
+            file_path = file_path.lower()  # Convert to lowercase
+            file_path = file_path.split("/")[-1]
+            file_path = re.sub(r"\.+", ".", file_path)
+
+        # Process the dylib path, if available
+        dylib_path = frame.get("dylib", None)
+        if dylib_path:
+            # Normalize the dylib path
+            dylib_path = re.sub(
+                r"[^a-zA-Z0-9/\.]", "", dylib_path
+            )  # Remove non-alphanumeric except '/'
+            dylib_path = dylib_path.lower()  # Convert to lowercase
+            dylib_path = dylib_path.split("/")[-1]
+            dylib_path = re.sub(r"\.+", ".", dylib_path)
+
+        # Construct the normalized representation
+        normalized_frame = function_name
+        if file_path:
+            normalized_frame += f" at {file_path}"
+        elif dylib_path:
+            normalized_frame += f" at {dylib_path}"
+
+        return normalized_frame

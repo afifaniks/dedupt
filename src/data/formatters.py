@@ -53,10 +53,10 @@ class JavaStackFormatter(StackFormatter):
 
 
 # Make a factory of fomatters
-def get_formatter(name: str, from_top: bool, max_num_frames: int) -> StackFormatter:
+def get_formatter(name: str) -> StackFormatter:
     if name == "cpp":
-        return CppStackFormatter(from_top, max_num_frames)
+        return CppStackFormatter(False, 100)
     elif name == "java":
-        return JavaStackFormatter(from_top, max_num_frames)
+        return JavaStackFormatter(False, 10)
     else:
         raise ValueError(f"Unknown formatter name: {name}")

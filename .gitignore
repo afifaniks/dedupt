@@ -10,3 +10,4 @@ tmp_trainer/
 checkpoints/
 .env
 nohup.out
+plots/

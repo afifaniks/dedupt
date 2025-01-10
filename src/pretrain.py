@@ -1,11 +1,7 @@
-import json
-from pprint import pprint
 
-import matplotlib.pyplot as plt
 import torch
 from sentence_transformers import (
     SentenceTransformer,
-    SentenceTransformerModelCardData,
     SentenceTransformerTrainer,
     SentenceTransformerTrainingArguments,
 )
@@ -15,11 +11,11 @@ from sentence_transformers.evaluation import (
 )
 from sentence_transformers.losses import MultipleNegativesRankingLoss
 from sentence_transformers.training_args import BatchSamplers
-from sklearn.manifold import TSNE
 from tqdm import tqdm
 
-from data.buckets.bucket_data import BucketData, OtherBucketData
+from data.buckets.bucket_data import OtherBucketData
 from data.buckets.issues_data import BucketDataset
+from data.formatters import get_formatter
 from data.triplet_selector import RandomTripletSelector
 from datasets import Dataset
 from preprocess.entry_coders import Stack2Seq
@@ -38,51 +34,97 @@ print(f"Model sequence length: {model.max_seq_length}")
 print(f"Model size: {torch.cuda.memory_allocated() / 1024 ** 3:.2f} GB")
 
 
-dataset_key = "gnome_pretrain"
-run_name = "bge-base-gnome"
-generate_dataset = False
+dataset_key = "netbeans_pretrain_all_st"
+run_name = "bge-base-netbeans_all_st"
+bucket_name = "netbeans"
+dataset_json = "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/netbeans_2016/netbeans_stacktraces.json"
+language = "java"
+stack_formatter = get_formatter(language)
+generate_dataset = True
 batch_size = 16
-eval_size = 1000
-num_frames = -1
-num_train_pairs = 1
+eval_size = 200
+max_num_frames = 100
+num_train_pairs = 4
 num_test_pairs = 1
 # trim_length = 0
 frame_freq = {}
-test_only = False
+test_only = True
 
 # Print all training parameters
 print("Train pair:", num_train_pairs, "Test pair:", num_test_pairs)
 
 
-def format_stack(stack, from_top=False):
-    # Remove duplicate frames
-    stack = list(dict.fromkeys(stack))
-    stack = [frame for frame in stack if frame.lower() != "none"]
-    if num_frames > 0:
-        if from_top:
-            stack = stack[:num_frames]
-        else:
-            stack = stack[-num_frames:]
+def truncate_tokens(tokens, max_length):
+    """
+    Truncate tokens from the beginning of the sequence if they exceed max_length.
 
-    return "\n".join([f"{i+1}: {frame}" for i, frame in enumerate(stack)])
+    Args:
+        tokens (list): List of tokens.
+        max_length (int): Maximum allowable number of tokens.
+
+    Returns:
+        list: Truncated tokens.
+    """
+    if len(tokens) > max_length:
+        tokens = tokens[-max_length:]  # Keep the last max_length tokens
+    return tokens
 
 
-def get_data_row(
-    coder, event, similar_stack_id, dissimilar_stack_id, add_to_freq=False
-):
+def truncate_dataset(dataset, tokenizer, max_length):
+    """
+    Truncate all text fields in a dataset.
+
+    Args:
+        dataset (Dataset): Dataset object.
+        tokenizer: Tokenizer object.
+        max_length (int): Maximum sequence length.
+
+    Returns:
+        Dataset: Updated dataset with truncated sequences.
+    """
+
+    def truncate_row(row):
+        for field in ["anchor", "positive", "negative"]:
+            row[field] = tokenizer.decode(
+                truncate_tokens(tokenizer.encode("\n".join(row[field])), max_length)
+            )
+        return row
+
+    return dataset.map(truncate_row)
+
+
+# def format_stack(stack, from_top=False):
+#     # Remove duplicate frames
+#     stack = list(dict.fromkeys(stack))
+#     stack = [frame for frame in stack if frame.lower() != "none"]
+#     if max_num_frames > 0:
+#         if from_top:
+#             stack = stack[:max_num_frames]
+#         else:
+#             stack = stack[-max_num_frames:]
+
+#     return "\n".join([f"{i+1}: {frame}" for i, frame in enumerate(stack)]).replace(
+#         "_", " "
+#     )
+
+
+def get_data_row(coder, event, similar_stack_id, dissimilar_stack_id):
     anchor_frames = coder(event.st_id, transformer=True)
     positive_frames = coder(similar_stack_id, transformer=True)
     negative_frames = coder(dissimilar_stack_id, transformer=True)
 
-    if add_to_freq:
-        for frames in [anchor_frames, positive_frames, negative_frames]:
-            for frame in frames:
-                frame_freq[frame] = frame_freq.get(frame, 0) + 1
-
     return {
-        "anchor": format_stack(anchor_frames),
-        "positive": format_stack(positive_frames),
-        "negative": format_stack(negative_frames),
+        "anchor": anchor_frames,
+        "positive": positive_frames,
+        "negative": negative_frames,
+    }
+
+
+def format_data_row(frames):
+    return {
+        "anchor": stack_formatter.format(frames["anchor"]),
+        "positive": stack_formatter.format(frames["positive"]),
+        "negative": stack_formatter.format(frames["negative"]),
     }
 
 
@@ -104,6 +146,7 @@ def generate_dataset_for_train_test(
         700,
         350,
         140,
+        is_cpp=True if language == "cpp" else False,
     )
     bucket_data.load()
     stack_loader = bucket_data.stack_loader()
@@ -136,7 +179,6 @@ def generate_dataset_for_train_test(
                         event,
                         similar_stack_id,
                         dissimilar_stack_id,
-                        add_to_freq=False,
                     )
                 )
 
@@ -158,8 +200,8 @@ if generate_dataset:
 
     # Load from netbeans bucket
     nb_train, nb_test = generate_dataset_for_train_test(
-        "gnome",
-        "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/gnome_2011/gnome_stacktraces_filtered.json",
+        bucket_name,
+        dataset_json,
         num_train_pairs,
         num_test_pairs,
         0,
@@ -177,16 +219,23 @@ if generate_dataset:
 
 
 print("Load the preprocessed dataset")
-train_dataset = Dataset.load_from_disk(f"datasets/{dataset_key}_train")
+train_dataset = []
 test_dataset = Dataset.load_from_disk(f"datasets/{dataset_key}_eval")
-
-# Optionally preprocess and shuffle the dataset
-train_dataset = train_dataset.shuffle(seed=42)
+# Format test dataset
 test_dataset = test_dataset.shuffle(seed=42)
+print("Sample test data")
+print("Before formatting", test_dataset[0])
+test_dataset = test_dataset.map(format_data_row)
+print("After formatting", test_dataset[0])
 eval_dataset = test_dataset.select(range(eval_size))
 
+if not test_only:
+    train_dataset = Dataset.load_from_disk(f"datasets/{dataset_key}_train")
+    train_dataset = train_dataset.shuffle(seed=42)
+    train_dataset = train_dataset.map(format_data_row)
+
+
 print("Dataset Sizes - Train:", len(train_dataset), "Test:", len(test_dataset))
-pprint(test_dataset[0])
 
 # 4. Define a loss function
 loss = MultipleNegativesRankingLoss(model)
@@ -245,7 +294,7 @@ args = SentenceTransformerTrainingArguments(
     num_train_epochs=2,
     per_device_train_batch_size=batch_size,
     per_device_eval_batch_size=batch_size,
-    learning_rate=1e-5,
+    learning_rate=2e-5,
     warmup_ratio=0.1,
     fp16=True,  # Set to False if you get an error that your GPU can't run on FP16
     bf16=False,  # Set to True if you have a GPU that supports BF16

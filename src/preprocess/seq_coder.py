@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Dict, Iterable, List, Tuple
+from typing import Dict, Iterable, List, Tuple, Union
 
 from data.stack_loader import StackLoader
 from preprocess.entry_coders import Entry2Seq, remove_equals
@@ -46,7 +46,7 @@ class VocabFreqController:
 class CharFilter:
     def __init__(self):
         self.ok_symbols = set(
-            [chr(i) for i in range(ord("a"), ord("z") + 1)] + [".", ",", "_"]
+            [chr(i) for i in range(ord("a"), ord("z") + 1)] + [".", ",", "_", " ", "/"]
         )  # $
 
     def __call__(self, seq: List[str]) -> List[str]:
@@ -60,6 +60,27 @@ class CharFilter:
         ]
 
 
+class CharFilterMultiStack:
+    def __init__(self):
+        self.ok_symbols = set(
+            [chr(i) for i in range(ord("a"), ord("z") + 1)] + [".", ",", "_", " ", "/"]
+        )  # $
+
+    def __call__(self, seqs: List[List[str]]) -> List[str]:
+        filtered = []
+        for seq in seqs:
+            rs = [
+                s
+                for s in (
+                    "".join(filter(lambda x: x.lower() in self.ok_symbols, word))
+                    for word in seq
+                )
+                if s
+            ]
+            filtered.append(rs)
+        return filtered
+
+
 class SeqCoder:
     def __init__(
         self,
@@ -71,7 +92,7 @@ class SeqCoder:
     ):
         self.stack_loader = stack_loader
         self.entry_to_seq = entry_to_seq
-        self.char_filter = CharFilter()
+        self.char_filter = CharFilterMultiStack()
         self.vocab_control = VocabFreqController(min_freq)
         self.tokenizer = Padding(tokenizer, max_len)
         self.fitted = False
@@ -109,13 +130,15 @@ class SeqCoder:
 
     def _pre_call(self, stack_id: int):
         res = self.stack_loader(stack_id)
-        for tr in [self.entry_to_seq, self.char_filter, self.vocab_control]:
+        for tr in [self.entry_to_seq, self.char_filter]:
             if tr is not None:
                 res = tr(res)
-        return remove_equals(res)
+        return res
 
     @lru_cache(maxsize=200_000)
-    def __call__(self, stack_id: int, transformer: bool = False) -> List[int]:
+    def __call__(
+        self, stack_id: int, transformer: bool = False
+    ) -> Union[List[int], List[str]]:
         if transformer:
             return self._pre_call(stack_id)
 

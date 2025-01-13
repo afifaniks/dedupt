@@ -7,6 +7,7 @@ from issue_sim import classic_issues, neural_issues
 
 all_methods = [
     "s3m",
+    "transformer",
     "lerch",
     "tracesim",
     "durfex",
@@ -27,8 +28,15 @@ def classic_issue(data: BucketData, methods: List[str] = None, trim_len: int = 0
         print()
 
 
-def neural_issue(data: BucketData, trim_len: int = 0):
-    neural_issues(data, max_len=None, trim_len=trim_len, loss_name="ranknet", epochs=5)
+def neural_issue(data: BucketData, trim_len: int = 0, method_name: str = ""):
+    neural_issues(
+        data,
+        max_len=None,
+        trim_len=trim_len,
+        loss_name="ranknet",
+        epochs=2,
+        method_name=method_name,
+    )
 
 
 def main():
@@ -42,20 +50,23 @@ def main():
         help="Trim length for S3M method",
     )
     parser.add_argument("--data_path", type=str, help="Path to file with reports")
+    parser.add_argument("--bucket_name", type=str, help="Bucket name of reports")
     args = parser.parse_args()
 
     start = time()
 
-    bucket_netbeans = OtherBucketData("netbeans", args.data_path, 3850, 700, 350, 140)
+    bucket_netbeans = OtherBucketData(
+        args.bucket_name, args.data_path, 3850, 700, 350, 140, is_cpp=False
+    )
 
-    if args.method == "s3m":
-        neural_issue(bucket_netbeans, trim_len=args.trim_len)
+    if args.method == "s3m" or args.method == "transformer":
+        neural_issue(bucket_netbeans, trim_len=args.trim_len, method_name=args.method)
     else:
         if args.method == "durfex":
             trim_len = 2
         else:
             trim_len = 0
-        classic_issue(bucket_netbeans, all_methods[1:], trim_len=trim_len)
+        classic_issue(bucket_netbeans, [args.method], trim_len=trim_len)
 
     print("Time:", time() - start)
 

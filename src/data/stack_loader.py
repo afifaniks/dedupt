@@ -77,7 +77,7 @@ class JsonStackLoader(StackLoader):
 
 class JsonStackLoaderForCpp(StackLoader):
     def __init__(self, reports_path: str, include_file_path: bool = False):
-        print("Selected StackLoader for C++")
+        print("Selected StackLoader for C++\nFile path inclusion:", include_file_path)
         self.reports_path = reports_path
         self.include_file_path = include_file_path
         self.reports = {}
@@ -118,6 +118,8 @@ class JsonStackLoaderForCpp(StackLoader):
                     function_name = re.sub(
                         r"_+", "_", function_name
                     )  # Replace double underscores
+
+                    normalized_frame = function_name
 
                     if self.include_file_path:
                         normalized_frame = self._normalize_frame(function_name, frame)
@@ -165,3 +167,36 @@ class JsonStackLoaderForCpp(StackLoader):
             normalized_frame += f" at {dylib_path}"
 
         return normalized_frame
+
+
+class JsonStackLoaderJavaMulti(StackLoader):
+    def __init__(self, reports_path: str):
+        self.reports_path = reports_path
+        self.reports = {}
+        print("Stack loader: ", self.name())
+
+        raw_reports = json.load(open(reports_path, "r"))
+        for report in raw_reports:
+            if report is None:
+                continue
+
+            stacks = []
+            st_id = report["bug_id"]
+            stacktraces = report["stacktrace"]
+
+            for stacktrace in stacktraces:
+                exception = stacktrace["exception"] or []
+                if isinstance(exception, str):
+                    exception = [exception]
+
+                raw_frames = stacktrace["frames"]
+                frames = [frame["function"] for frame in raw_frames]
+                stacks.append(Stack(st_id, report["creation_ts"], exception, frames))
+
+            self.reports[st_id] = stacks
+
+    def name(self) -> str:
+        return "json_loader_multi"
+
+    def __call__(self, id: int) -> Stack:
+        return self.reports[id]

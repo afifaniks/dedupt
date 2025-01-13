@@ -88,6 +88,7 @@ class StackClassifier(nn.Module):
         self.num_layers = num_layers
         self.out_num = out_num
         self.dropout = dropout
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
         if num_layers == 1:
             self.classifier = nn.Sequential(
                 nn.Dropout(p=dropout), nn.Linear(self.input_dim, out_num)
@@ -101,8 +102,8 @@ class StackClassifier(nn.Module):
             )
 
     def forward(self, v1: torch.tensor, v2: torch.tensor) -> torch.tensor:
-        v1 = v1.cuda()
-        v2 = v2.cuda()
+        v1 = v1.to(self.device)
+        v2 = v2.to(self.device)
 
         if self.num_layers == 0:
             cl = torch.exp(-(v1 - v2).norm(p=2, dim=0)).view(1, 1)

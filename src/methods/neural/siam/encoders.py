@@ -118,7 +118,7 @@ class TransformerEncoder:
     @lru_cache(maxsize=200_000)
     def forward(self, stack_id: int) -> torch.Tensor:
         frames = self.coder(stack_id, transformer=True)
-        frames = self.stack_formatter.format(frames)
+        frames = [self.stack_formatter.format(frame) for frame in frames]
         emb = self.transformer.encode(frames, convert_to_tensor=True)
 
         return emb

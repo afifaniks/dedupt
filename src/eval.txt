@@ -1,0 +1,24 @@
+Eclipse dataset (Pre-Pretrain eval)
+====================
+
+BGE
+Trim 2, Last 8 frame
+
+Initial embedding evaluation result:  {'pearson_cosine': 0.7339121638008528, 'spearman_cosine': 0.7638646530915142, 'pearson_manhattan': 0.7558674167296808, 'spearman_manhattan': 0.7606958347665798, 'pearson_euclidean': 0.7559877838228726, 'spearman_euclidean': 0.7611888324526083, 'pearson_dot': 0.7339121711374332, 'spearman_dot': 0.7609085907022474, 'pearson_max': 0.7559877838228726, 'spearman_max': 0.7638646530915142}
+Initial triplet evaluation result:  {'all-nli-dev_cosine_accuracy': 0.957, 'all-nli-dev_dot_accuracy': 0.042, 'all-nli-dev_manhattan_accuracy': 0.957, 'all-nli-dev_euclidean_accuracy': 0.957, 'all-nli-dev_max_accuracy': 0.957}
+
+{'pearson_cosine': 0.8776477289438692, 'spearman_cosine': 0.8272472112716064, 'pearson_manhattan': 0.837549492971876, 'spearman_manhattan': 0.8264733520818528, 'pearson_euclidean': 0.8377796303547749, 'spearman_euclidean': 0.8272470334183355, 'pearson_dot': 0.8776477278430559, 'spearman_dot': 0.8244801870870477, 'pearson_max': 0.8776477289438692, 'spearman_max': 0.8272472112716064}
+
+all-mpnet-base-v2
+Trim 0, Last 10 frames
+Initial embedding evaluation result:  {'pearson_cosine': 0.7992739759883348, 'spearman_cosine': 0.7912289345151216, 'pearson_manhattan': 0.8067105456649315, 'spearman_manhattan': 0.7893786618339597, 'pearson_euclidean': 0.8071593198754301, 'spearman_euclidean': 0.7901658252924326, 'pearson_dot': 0.7992739781573843, 'spearman_dot': 0.7868736461978817, 'pearson_max': 0.8071593198754301, 'spearman_max': 0.7912289345151216}
+Initial triplet evaluation result:  {'all-nli-dev_cosine_accuracy': 0.949, 'all-nli-dev_dot_accuracy': 0.037, 'all-nli-dev_manhattan_accuracy': 0.948, 'all-nli-dev_euclidean_accuracy': 0.949, 'all-nli-dev_max_accuracy': 0.949}
+
+
+
+AFTER FINETUNE
+=====================================
+all-mpnet-base-v2
+Trim 0, Last 10 frames
+Final triplet test result:  {'all-nli-test_cosine_accuracy': 0.9523578026251823, 'all-nli-test_dot_accuracy': 0.038405444822557123, 'all-nli-test_manhattan_accuracy': 0.9513855128828391, 'all-nli-test_euclidean_accuracy': 0.9523578026251823, 'all-nli-test_max_accuracy': 0.9523578026251823}
+Final embedding test result:  {'pearson_cosine': 0.8538804206564128, 'spearman_cosine': 0.7968386824165313, 'pearson_manhattan': 0.8142787396910186, 'spearman_manhattan': 0.795043385551185, 'pearson_euclidean': 0.8146487752112773, 'spearman_euclidean': 0.796682474913166, 'pearson_dot': 0.8538804202366199, 'spearman_dot': 0.7964464444546708, 'pearson_max': 0.8538804206564128, 'spearman_max': 0.7968386824165313}

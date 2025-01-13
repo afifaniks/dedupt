@@ -57,6 +57,6 @@ def get_formatter(name: str) -> StackFormatter:
     if name == "cpp":
         return CppStackFormatter(False, 100)
     elif name == "java":
-        return JavaStackFormatter(False, 10)
+        return JavaStackFormatter(False, 20)
     else:
         raise ValueError(f"Unknown formatter name: {name}")

@@ -92,6 +92,98 @@ class SeqCoder:
     ):
         self.stack_loader = stack_loader
         self.entry_to_seq = entry_to_seq
+        self.char_filter = CharFilter()
+        self.vocab_control = VocabFreqController(min_freq)
+        self.tokenizer = Padding(tokenizer, max_len)
+        self.fitted = False
+        self._name = "_".join(
+            filter(
+                lambda x: x.strip(),
+                (
+                    self.stack_loader.name(),
+                    entry_to_seq.name(),
+                    self.tokenizer.name(),
+                    self.vocab_control.name(),
+                ),
+            )
+        )
+
+    def fit(self, stack_ids: Iterable[int]) -> "SeqCoder":
+        if self.fitted:
+            print("SeqCoder already fitted, fit call skipped")
+            return self
+        stacks = []
+        for stack_id in stack_ids:
+            try:
+                stacks.append(self.stack_loader(stack_id))
+            except:
+                pass
+        seqs = [
+            self.char_filter(self.entry_to_seq(self.stack_loader(stack_id)))
+            for stack_id in stack_ids
+        ]
+        if self.vocab_control:
+            seqs = self.vocab_control.fit_transform(seqs)
+        self.tokenizer.fit(seqs)
+        self.fitted = True
+        return self
+
+    def _pre_call(self, stack_id: int):
+        res = self.stack_loader(stack_id)
+        for tr in [self.entry_to_seq, self.char_filter, self.vocab_control]:
+            if tr is not None:
+                res = tr(res)
+        return remove_equals(res)
+
+    @lru_cache(maxsize=200_000)
+    def __call__(self, stack_id: int, transformer: bool = False) -> List[int]:
+        if transformer:
+            return self._pre_call(stack_id)
+
+        return self.tokenizer(self._pre_call(stack_id))
+
+    @lru_cache(maxsize=200_000)
+    def to_seq(self, stack_id: int) -> List[str]:
+        return self.tokenizer.split(self._pre_call(stack_id))
+
+    @lru_cache(maxsize=200_000)
+    def ngrams(
+        self, stack_id: int, n: int = None, ns: Tuple[int, ...] = None
+    ) -> Dict[Tuple[int, ...], int]:
+        assert (n is None) != (ns is None)  # only one is None
+        if ns is None:
+            ns = (n,)
+        ngrams_map = {}
+        ids = self(stack_id)
+        l = len(ids)
+        for i, token_id in enumerate(ids):
+            for n in ns:
+                if i + n <= l:
+                    key = tuple(ids[i : i + n])
+                    ngrams_map[key] = ngrams_map.get(key, 0) + 1
+        return ngrams_map
+
+    def __len__(self) -> int:
+        return len(self.tokenizer)
+
+    def name(self) -> str:
+        return self._name
+
+    def train(self, mode: bool = True):
+        self.tokenizer.train(mode)
+
+
+class SeqCoderMulti:
+    def __init__(
+        self,
+        stack_loader: StackLoader,
+        entry_to_seq: Entry2Seq,
+        tokenizer: Tokenizer,
+        min_freq: int = 0,
+        max_len: int = None,
+    ):
+        self.stack_loader = stack_loader
+        self.entry_to_seq = entry_to_seq
         self.char_filter = CharFilterMultiStack()
         self.vocab_control = VocabFreqController(min_freq)
         self.tokenizer = Padding(tokenizer, max_len)

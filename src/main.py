@@ -28,17 +28,6 @@ def classic_issue(data: BucketData, methods: List[str] = None, trim_len: int = 0
         print()
 
 
-def neural_issue(data: BucketData, trim_len: int = 0, method_name: str = ""):
-    neural_issues(
-        data,
-        max_len=None,
-        trim_len=trim_len,
-        loss_name="ranknet",
-        epochs=2,
-        method_name=method_name,
-    )
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("method", type=str, help=f"Method name. One of {all_methods}")
@@ -51,16 +40,25 @@ def main():
     )
     parser.add_argument("--data_path", type=str, help="Path to file with reports")
     parser.add_argument("--bucket_name", type=str, help="Bucket name of reports")
+    parser.add_argument("--lang", type=str, help="java/cpp")
     args = parser.parse_args()
 
     start = time()
 
     bucket_netbeans = OtherBucketData(
-        args.bucket_name, args.data_path, 3850, 700, 350, 140, is_cpp=False
+        args.bucket_name, args.data_path, 3850, 700, 350, 140, lang=args.lang
     )
 
     if args.method == "s3m" or args.method == "transformer":
-        neural_issue(bucket_netbeans, trim_len=args.trim_len, method_name=args.method)
+        neural_issues(
+            bucket_netbeans,
+            max_len=None,
+            trim_len=args.trim_len,
+            loss_name="ranknet",
+            epochs=4,
+            method_name=args.method,
+            lang=args.lang,
+        )
     else:
         if args.method == "durfex":
             trim_len = 2

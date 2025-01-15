@@ -72,6 +72,7 @@ def neural_issues(
     hyp_top_issues: int = 5,
     epochs: int = 2,
     method_name: str = "",
+    lang: str = "",
 ):
     set_seed(random_seed)
     print("Dataset:", bucket_data.name)
@@ -93,7 +94,6 @@ def neural_issues(
     stack_loader = bucket_data.stack_loader()
     dataset = BucketDataset(bucket_data)
     unsup_stacks = dataset.train_stacks()
-    language = "java"
 
     model = create_neural_model(
         stack_loader,
@@ -101,7 +101,7 @@ def neural_issues(
         max_len,
         trim_len,
         model_name=method_name,
-        language=language,
+        language=lang,
     )
     print("Model")
     print(model)
@@ -115,7 +115,7 @@ def neural_issues(
         epochs=epochs,
         batch_size=25,
         period=10000,
-        selection_from_event_num=2,
+        selection_from_event_num=4,
         writer=None,
     )
 

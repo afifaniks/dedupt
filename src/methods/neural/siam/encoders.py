@@ -101,7 +101,7 @@ class TransformerEncoder:
         self,
         coder: SeqCoder,
         stack_formatter: StackFormatter,
-        model_name: str = "models/bge-base-gnome/final",
+        model_name: str,
         out_dim: int = 768,
     ):
         # super(TransformerEncoder, self).__init__(

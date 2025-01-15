@@ -57,13 +57,13 @@ class OtherBucketData(BucketData):
         warmup_days: int,
         val_days: int,
         sep: str = ".",
-        is_cpp: bool = False,
+        lang: str = "",
     ):
         super().__init__(
             name, train_days, test_days, warmup_days, val_days, reports_path, sep
         )
         self.actions = None
-        self.is_cpp = is_cpp
+        self.lang = lang
 
     def load(self) -> "OtherBucketData":
         self.actions = []
@@ -91,7 +91,7 @@ class OtherBucketData(BucketData):
         return self.actions
 
     def stack_loader(self) -> StackLoader:
-        if self.is_cpp:
-            return JsonStackLoaderForCpp(self.reports_path)
+        if self.lang == "cpp":
+            return JsonStackLoaderJavaMulti(self.reports_path)
 
         return JsonStackLoaderJavaMulti(self.reports_path)

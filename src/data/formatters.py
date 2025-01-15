@@ -1,3 +1,4 @@
+import re
 from abc import ABC, abstractmethod
 from typing import List
 
@@ -19,6 +20,7 @@ class StackFormatter(ABC):
 class CppStackFormatter(StackFormatter):
     def __init__(self, from_top: bool, max_num_frames: int) -> None:
         super().__init__(from_top, max_num_frames)
+        print("Using CppStackFormatter")
 
     def format(self, stack) -> str:
         # Remove duplicate frames
@@ -30,9 +32,12 @@ class CppStackFormatter(StackFormatter):
             else:
                 stack = stack[-self.max_num_frames :]
 
-        return "\n".join([f"{i+1}: {frame}" for i, frame in enumerate(stack)]).replace(
+        stack = "\n".join([f"{i+1}: {frame}" for i, frame in enumerate(stack)]).replace(
             "_", " "
         )
+        stack = re.sub(r" +", " ", stack)
+
+        return stack
 
     def name(self) -> str:
         return "cpp"

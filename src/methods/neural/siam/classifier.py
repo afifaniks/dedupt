@@ -109,7 +109,7 @@ class StackClassifier(nn.Module):
             cl = torch.exp(-(v1 - v2).norm(p=2, dim=0)).view(1, 1)
             return torch.cat((1 - cl, cl))
 
-        v1 = v1.expand(v2.shape)
+        # v1 = v1.expand(v2.shape)
 
         diff = torch.abs(v1 - v2)
         if self.features_num == 1:

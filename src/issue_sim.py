@@ -73,6 +73,7 @@ def neural_issues(
     epochs: int = 2,
     method_name: str = "",
     lang: str = "",
+    multi_stack: bool = False,
 ):
     set_seed(random_seed)
     print("Dataset:", bucket_data.name)
@@ -91,7 +92,7 @@ def neural_issues(
         loss_name,
     )
     bucket_data.load()
-    stack_loader = bucket_data.stack_loader()
+    stack_loader = bucket_data.stack_loader(multi_stack)
     dataset = BucketDataset(bucket_data)
     unsup_stacks = dataset.train_stacks()
 
@@ -102,6 +103,7 @@ def neural_issues(
         trim_len,
         model_name=method_name,
         language=lang,
+        multi_stack=multi_stack,
     )
     print("Model")
     print(model)

@@ -1,7 +1,7 @@
 import json
 from abc import ABC, abstractmethod
 from collections import namedtuple
-from typing import List
+from typing import List, Optional
 
 from data.stack_loader import (
     JsonStackLoader,
@@ -43,7 +43,7 @@ class BucketData(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def stack_loader(self) -> StackLoader:
+    def stack_loader(self, multi_stack: Optional[bool]) -> StackLoader:
         raise NotImplementedError
 
 
@@ -58,12 +58,14 @@ class OtherBucketData(BucketData):
         val_days: int,
         sep: str = ".",
         lang: str = "",
+        multi_stack: bool = False,
     ):
         super().__init__(
             name, train_days, test_days, warmup_days, val_days, reports_path, sep
         )
         self.actions = None
         self.lang = lang
+        self.multi_stack = multi_stack
 
     def load(self) -> "OtherBucketData":
         self.actions = []
@@ -90,8 +92,10 @@ class OtherBucketData(BucketData):
     def events(self) -> List[StackAdditionEvent]:
         return self.actions
 
-    def stack_loader(self) -> StackLoader:
+    def stack_loader(self, multi_stack: bool = False) -> StackLoader:
+        if multi_stack:
+            return JsonStackLoaderJavaMulti(self.reports_path)
         if self.lang == "cpp":
             return JsonStackLoaderJavaMulti(self.reports_path)
 
-        return JsonStackLoaderJavaMulti(self.reports_path)
+        return JsonStackLoader(self.reports_path)

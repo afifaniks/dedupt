@@ -20,9 +20,11 @@ from methods.neural.siam.siam_network import (
     SiamMultiModalModel,
     SiamSentTransformerModel,
     SiamSentTransformerModelMultiStack,
+    SiamSentTransformerModelMultiStackAttention,
+    SiamSentTransformerModelMultiStackMultiHead,
 )
 from preprocess.entry_coders import Stack2Seq, Stack2SeqMultiStack
-from preprocess.seq_coder import SeqCoder
+from preprocess.seq_coder import SeqCoder, SeqCoderMulti
 from preprocess.tokenizers import SimpleTokenizer
 
 
@@ -67,25 +69,39 @@ def create_neural_model(
     trim_len: int = 0,
     sep: str = ".",
     model_name: str = "s3m",
-    language: str = "java",
+    language: str = "",
+    multi_stack: bool = False,
 ) -> NeuralModel:
-    stack2seq = Stack2SeqMultiStack(cased=False, trim_len=trim_len, sep=sep)
-
+    stack2seq = Stack2Seq(cased=False, trim_len=trim_len, sep=sep)
     coder = SeqCoder(
         stack_loader, stack2seq, SimpleTokenizer(), min_freq=0, max_len=max_len
     )
-
-    # coder.fit(unsup_data)
+    model = None
 
     if model_name == "transformer":
+        print("Multi stack status:", multi_stack)
         stack_formatter = get_formatter(language)
+        if multi_stack:
+            stack2seq = Stack2SeqMultiStack(cased=False, trim_len=trim_len, sep=sep)
+            coder = SeqCoderMulti(
+                stack_loader, stack2seq, SimpleTokenizer(), min_freq=0, max_len=max_len
+            )
+
         encoder = TransformerEncoder(
             coder=coder,
             stack_formatter=stack_formatter,
-            model_name="models/bge-base-eclipse_10/final",
+            model_name="models/bge-base-netbeans_10/final",
+            multi_stack=multi_stack,
         )
-        model = SiamSentTransformerModelMultiStack(encoder, features_num=4, out_num=1)
+
+        if multi_stack:
+            model = SiamSentTransformerModelMultiStack(
+                encoder, features_num=4, out_num=1
+            )
+        else:
+            model = SiamSentTransformerModel(encoder, features_num=4, out_num=1)
     elif model_name == "s3m":
+        coder.fit(unsup_data)
         encoders = [LSTMEncoder(coder, dim=50, hid_dim=100).to(device)]
         model = SiamMultiModalModel(
             encoders, ConcatAggregation, features_num=4, out_num=1
@@ -94,5 +110,6 @@ def create_neural_model(
         raise ValueError("Model name does not match")
 
     model.to(device)
+    print("Choosen model:", model)
 
     return model

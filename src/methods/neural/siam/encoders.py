@@ -1,6 +1,7 @@
 import warnings
 from abc import ABC, abstractmethod
 from functools import lru_cache
+from pprint import pprint
 from typing import List
 
 import torch
@@ -103,6 +104,7 @@ class TransformerEncoder:
         stack_formatter: StackFormatter,
         model_name: str,
         out_dim: int = 768,
+        multi_stack: bool = False,
     ):
         # super(TransformerEncoder, self).__init__(
         #     f"transformer_{model_name}", None, dim=384, out_dim=out_dim, **kvargs
@@ -114,11 +116,15 @@ class TransformerEncoder:
         self.stack_formatter = stack_formatter
         self.output_dim = out_dim
         self.coder = coder
+        self.multi_stack = multi_stack
 
     @lru_cache(maxsize=200_000)
     def forward(self, stack_id: int) -> torch.Tensor:
         frames = self.coder(stack_id, transformer=True)
-        frames = [self.stack_formatter.format(frame) for frame in frames]
+        if self.multi_stack:
+            frames = [self.stack_formatter.format(frame) for frame in frames]
+        else:
+            frames = self.stack_formatter.format(frames)
         emb = self.transformer.encode(frames, convert_to_tensor=True)
 
         return emb

@@ -1,3 +1,4 @@
+from collections import Counter
 
 import torch
 from sentence_transformers import (
@@ -18,8 +19,8 @@ from data.buckets.issues_data import BucketDataset
 from data.formatters import get_formatter
 from data.triplet_selector import RandomTripletSelector
 from datasets import Dataset
-from preprocess.entry_coders import Stack2Seq
-from preprocess.seq_coder import SeqCoder
+from preprocess.entry_coders import Stack2Seq, Stack2SeqMultiStack
+from preprocess.seq_coder import SeqCoder, SeqCoderMulti
 from preprocess.tokenizers import SimpleTokenizer
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -40,15 +41,15 @@ bucket_name = "netbeans"
 dataset_json = "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/netbeans_2016/netbeans_stacktraces.json"
 language = "java"
 stack_formatter = get_formatter(language)
-generate_dataset = True
+generate_dataset = False
 batch_size = 16
 eval_size = 200
-max_num_frames = 100
+max_num_frames = 30
 num_train_pairs = 4
 num_test_pairs = 1
 # trim_length = 0
 frame_freq = {}
-test_only = True
+test_only = False
 
 # Print all training parameters
 print("Train pair:", num_train_pairs, "Test pair:", num_test_pairs)
@@ -108,6 +109,13 @@ def truncate_dataset(dataset, tokenizer, max_length):
 #     )
 
 
+def aggregate_frames(stack_list):
+    frames = []
+    for stack in stack_list:
+        frames.extend(stack)
+    return frames
+
+
 def get_data_row(coder, event, similar_stack_id, dissimilar_stack_id):
     anchor_frames = coder(event.st_id, transformer=True)
     positive_frames = coder(similar_stack_id, transformer=True)
@@ -146,7 +154,7 @@ def generate_dataset_for_train_test(
         700,
         350,
         140,
-        is_cpp=True if language == "cpp" else False,
+        lang=language,
     )
     bucket_data.load()
     stack_loader = bucket_data.stack_loader()
@@ -155,13 +163,13 @@ def generate_dataset_for_train_test(
 
     data_gen.reset()
 
-    stack2seq = Stack2Seq(cased=False, trim_len=trim_length, sep=".")
+    stack2seq = Stack2SeqMultiStack(cased=False, trim_len=trim_length, sep=".")
 
-    coder = SeqCoder(
+    coder = SeqCoderMulti(
         stack_loader, stack2seq, SimpleTokenizer(), min_freq=0, max_len=None
     )
 
-    coder.fit(unsup_stacks)
+    # coder.fit(unsup_stacks)
 
     train_data = []
     test_data = []
@@ -199,7 +207,7 @@ if generate_dataset:
     all_test = []
 
     # Load from netbeans bucket
-    nb_train, nb_test = generate_dataset_for_train_test(
+    train_stacks, test_stacks = generate_dataset_for_train_test(
         bucket_name,
         dataset_json,
         num_train_pairs,
@@ -209,11 +217,11 @@ if generate_dataset:
     )
 
     if not test_only:
-        all_train.extend(nb_train)
+        all_train.extend(train_stacks)
         train_dataset = Dataset.from_list(all_train)
         train_dataset.save_to_disk(f"datasets/{dataset_key}_train")
 
-    all_test.extend(nb_test)
+    all_test.extend(test_stacks)
     test_dataset = Dataset.from_list(all_test)
     test_dataset.save_to_disk(f"datasets/{dataset_key}_eval")
 
@@ -221,21 +229,64 @@ if generate_dataset:
 print("Load the preprocessed dataset")
 train_dataset = []
 test_dataset = Dataset.load_from_disk(f"datasets/{dataset_key}_eval")
-# Format test dataset
-test_dataset = test_dataset.shuffle(seed=42)
-print("Sample test data")
+
+if not test_only:
+    train_dataset = Dataset.load_from_disk(f"datasets/{dataset_key}_train")
+
+# Find frame frequency in train stacks
+all_train_frames = []
+for row in train_dataset:
+    if len(row["anchor"]) > 1 or len(row["positive"]) > 1:
+        print(row)
+
+    all_train_frames.extend(
+        list(dict.fromkeys([r for rr in row["anchor"] for r in rr]))
+    )
+    all_train_frames.extend(
+        list(dict.fromkeys([r for rr in row["positive"] for r in rr]))
+    )
+    all_train_frames.extend(
+        list(dict.fromkeys([r for rr in row["negative"] for r in rr]))
+    )
+
+total_stacktraces = len(train_dataset) * 3  # 3 stacks per row
+frame_counts = Counter(all_train_frames)
+# Create a dictionary for frame frequencies
+frame_freq = {frame: count for frame, count in frame_counts.items()}
+
+
+def sort_frames_by_frequency(frames, frame_freq):
+    """Sort frames based on their frequency in the training dataset."""
+    frames = [r for rr in frames for r in rr]  # Flatten the list
+    return sorted(frames, key=lambda frame: frame_freq.get(frame, 0), reverse=True)
+
+
+def sort_test_dataset_by_frequency(dataset, frame_freq):
+    """Sort frames within each row of the test dataset based on frequency."""
+
+    def sort_row(row):
+        row["anchor"] = sort_frames_by_frequency(row["anchor"], frame_freq)
+        row["positive"] = sort_frames_by_frequency(row["positive"], frame_freq)
+        row["negative"] = sort_frames_by_frequency(row["negative"], frame_freq)
+        return row
+
+    return dataset.map(sort_row)
+
+
+# Sort frames within the test dataset
+test_dataset = sort_test_dataset_by_frequency(test_dataset, frame_freq)
+
+print("Dataset Sizes - Train:", len(train_dataset), "Test:", len(test_dataset))
+
+
 print("Before formatting", test_dataset[0])
 test_dataset = test_dataset.map(format_data_row)
 print("After formatting", test_dataset[0])
 eval_dataset = test_dataset.select(range(eval_size))
 
-if not test_only:
-    train_dataset = Dataset.load_from_disk(f"datasets/{dataset_key}_train")
-    train_dataset = train_dataset.shuffle(seed=42)
-    train_dataset = train_dataset.map(format_data_row)
-
-
-print("Dataset Sizes - Train:", len(train_dataset), "Test:", len(test_dataset))
+train_dataset = train_dataset.shuffle(seed=42)
+test_dataset = test_dataset.shuffle(seed=42)
+# train_dataset = train_dataset.map(format_data_row)
 
 # 4. Define a loss function
 loss = MultipleNegativesRankingLoss(model)

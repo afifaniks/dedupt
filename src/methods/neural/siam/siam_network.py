@@ -123,12 +123,37 @@ class SiamSentTransformerModelMultiStack(NeuralModel):
 
     def aggregate_embeddings(self, stack_id):
         embeddings = self.encoder.forward(stack_id)
-        return torch.mean(embeddings, dim=0)
+        return embeddings  # torch.mean(embeddings, dim=0)
+
+    def find_most_similar_pair(self, embeddings1, embeddings2):
+        embeddings1 = F.normalize(embeddings1, p=2, dim=1)
+        embeddings2 = F.normalize(embeddings2, p=2, dim=1)
+
+        similarity_matrix = torch.mm(embeddings1, embeddings2.T)
+
+        max_sim = similarity_matrix.max().item()
+        max_idx = similarity_matrix.argmax().item()
+
+        i, j = divmod(max_idx, similarity_matrix.shape[1])
+
+        return max_sim, (i, j)
 
     def forward(self, stack_ids1, stack_ids2):
         agg_embedding1 = self.aggregate_embeddings(stack_ids1)
         agg_embedding2 = self.aggregate_embeddings(stack_ids2)
+        max_sim, (i, j) = self.find_most_similar_pair(agg_embedding1, agg_embedding2)
 
+        # print(
+        #     "Most similar pair: Embedding",
+        #     i,
+        #     "from List1 and Embedding",
+        #     j,
+        #     "from List2",
+        # )
+        # print("Maximum similarity:", max_sim)
+
+        agg_embedding1 = agg_embedding1[i]
+        agg_embedding2 = agg_embedding2[j]
         # Pass through the fully connected layer
         # agg_embedding1 = self.fc(anchor_embedding)
         # agg_embedding2 = self.fc(agg_embedding2)
@@ -236,5 +261,89 @@ class SiamSentTransformerModelMultiStackAttention(NeuralModel):
         return (
             self.encoder.opt_params()
             + list(self.fc.parameters())
+            + self.classifier.opt_params()
+        )
+
+
+class SiamSentTransformerModelMultiStackMultiHead(NeuralModel):
+    def __init__(self, encoder, hidden_dim=512, num_heads=12, **kwargs):
+        super(SiamSentTransformerModelMultiStackMultiHead, self).__init__()
+        self.encoder = encoder
+        self.hidden_dim = hidden_dim
+        self.num_heads = num_heads
+
+        # Fully connected layer for optional transformation after aggregation
+        self.fc = nn.Linear(self.encoder.out_dim(), self.hidden_dim)
+
+        # Multi-head attention to aggregate stack trace embeddings
+        self.attention = nn.MultiheadAttention(
+            embed_dim=self.encoder.out_dim(), num_heads=num_heads
+        )
+
+        # Classifier for duplicate prediction
+        self.classifier = StackClassifier(input_dim=self.hidden_dim, **kwargs)
+        self.cache = {}
+
+    def fit(
+        self,
+        sim_train_data: List[Tuple[int, int, int]] = None,
+        unsup_data: Iterable[int] = None,
+    ):
+        pass
+
+    def get_agg(self, stack_id):
+        if self.training:
+            self.cache = {}
+            return self.encoder(stack_id)
+        else:
+            if stack_id not in self.cache:
+                self.cache[stack_id] = self.encoder(stack_id)
+            return self.cache[stack_id]
+
+    def aggregate_embeddings(self, stack_ids):
+        # Encode stack traces
+        embeddings = self.encoder.forward(
+            stack_ids
+        )  # Shape: (num_stacks, embedding_dim)
+
+        # Add batch dimension for attention compatibility
+        embeddings = embeddings.unsqueeze(1)  # Shape: (num_stacks, 1, embedding_dim)
+
+        # Apply multi-head attention (query, key, value all set to embeddings for self-attention)
+        attn_output, _ = self.attention(embeddings, embeddings, embeddings)
+        attn_output = attn_output.squeeze(1)  # Shape: (num_stacks, embedding_dim)
+
+        # Aggregate the attention-weighted embeddings
+        aggregated_embedding = attn_output.mean(dim=0)  # Shape: (embedding_dim,)
+
+        # Optional: Pass through a fully connected layer
+        return self.fc(aggregated_embedding)
+
+    def forward(self, stack_ids1, stack_ids2):
+        # Aggregate embeddings using MHA
+        agg_embedding1 = self.aggregate_embeddings(stack_ids1)
+        agg_embedding2 = self.aggregate_embeddings(stack_ids2)
+
+        # Classification step
+        return self.classifier(agg_embedding1, agg_embedding2)
+
+    def predict(self, anchor_id, stack_ids):
+        with torch.no_grad():
+            y_pr = []
+            for stack_id in stack_ids:
+                y_pr.append(self.forward(anchor_id, stack_id).cpu().numpy()[1])
+            return y_pr
+
+    def name(self):
+        return self.encoder.name() + "_senttrans_" + self.classifier.name()
+
+    def train(self, mode=True):
+        super().train(mode)
+
+    def opt_params(self):
+        return (
+            self.encoder.opt_params()
+            + list(self.fc.parameters())
+            + list(self.attention.parameters())
             + self.classifier.opt_params()
         )

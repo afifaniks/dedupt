@@ -41,6 +41,9 @@ def main():
     parser.add_argument("--data_path", type=str, help="Path to file with reports")
     parser.add_argument("--bucket_name", type=str, help="Bucket name of reports")
     parser.add_argument("--lang", type=str, help="java/cpp")
+    parser.add_argument(
+        "--multi_stack", type=bool, default=False, help="Multi stack status"
+    )
     args = parser.parse_args()
 
     start = time()
@@ -58,6 +61,7 @@ def main():
             epochs=4,
             method_name=args.method,
             lang=args.lang,
+            multi_stack=args.multi_stack,
         )
     else:
         if args.method == "durfex":

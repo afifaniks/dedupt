@@ -51,6 +51,11 @@ class JavaStackFormatter(StackFormatter):
         # Remove duplicate frames
         stack = list(dict.fromkeys(stack))
         stack = [frame for frame in stack if frame.lower() != "none"]
+        if self.max_num_frames > 0:
+            if self.from_top:
+                stack = stack[: self.max_num_frames]
+            else:
+                stack = stack[-self.max_num_frames :]
         return "\n".join([f"{i+1}: {frame}" for i, frame in enumerate(stack)])
 
     def name(self) -> str:
@@ -62,6 +67,6 @@ def get_formatter(name: str) -> StackFormatter:
     if name == "cpp":
         return CppStackFormatter(False, 100)
     elif name == "java":
-        return JavaStackFormatter(False, 20)
+        return JavaStackFormatter(False, 10)
     else:
         raise ValueError(f"Unknown formatter name: {name}")

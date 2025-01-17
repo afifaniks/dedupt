@@ -201,24 +201,7 @@ class SeqCoderMulti:
         )
 
     def fit(self, stack_ids: Iterable[int]) -> "SeqCoder":
-        if self.fitted:
-            print("SeqCoder already fitted, fit call skipped")
-            return self
-        stacks = []
-        for stack_id in stack_ids:
-            try:
-                stacks.append(self.stack_loader(stack_id))
-            except:
-                pass
-        seqs = [
-            self.char_filter(self.entry_to_seq(self.stack_loader(stack_id)))
-            for stack_id in stack_ids
-        ]
-        if self.vocab_control:
-            seqs = self.vocab_control.fit_transform(seqs)
-        self.tokenizer.fit(seqs)
-        self.fitted = True
-        return self
+        pass
 
     def _pre_call(self, stack_id: int):
         res = self.stack_loader(stack_id)

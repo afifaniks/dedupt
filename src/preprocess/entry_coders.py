@@ -36,6 +36,10 @@ class Stack2Seq(Entry2Seq):
         if self.trim_len > 0:
             seq = [self.sep.join(s.split(self.sep)[: -self.trim_len]) for s in seq]
         seq = [s if self.cased else s.lower() for s in seq]
+
+        if stack.clazz:
+            seq.append(str(stack.clazz[0]).lower())
+
         return seq
 
     def name(self) -> str:
@@ -58,8 +62,8 @@ class Stack2SeqMultiStack(Entry2Seq):
             if self.trim_len > 0:
                 seq = [self.sep.join(s.split(self.sep)[: -self.trim_len]) for s in seq]
             seq = [s if self.cased else s.lower() for s in seq]
-            # if stack.clazz:
-            #     seq.append(str(stack.clazz[0]).lower())
+            if stack.clazz:
+                seq.append(str(stack.clazz[0]).lower())
             seqs.append(seq)
 
         return seqs

@@ -56,17 +56,23 @@ class JavaStackFormatter(StackFormatter):
                 stack = stack[: self.max_num_frames]
             else:
                 stack = stack[-self.max_num_frames :]
-        return "\n".join([f"{i+1}: {frame}" for i, frame in enumerate(stack)])
+        return "\n".join(
+            [
+                f"{i+1}: {frame}".replace(".", " ").strip()
+                for i, frame in enumerate(stack)
+            ]
+        ).strip()
 
     def name(self) -> str:
         return "java"
 
 
 # Make a factory of fomatters
-def get_formatter(name: str) -> StackFormatter:
+def get_formatter(name: str, num_frames: int) -> StackFormatter:
+    print("Selected formatter:", name, "num_frames:", num_frames)
     if name == "cpp":
-        return CppStackFormatter(False, 100)
+        return CppStackFormatter(False, num_frames)
     elif name == "java":
-        return JavaStackFormatter(False, 10)
+        return JavaStackFormatter(False, num_frames)
     else:
         raise ValueError(f"Unknown formatter name: {name}")

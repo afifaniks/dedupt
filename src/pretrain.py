@@ -1,3 +1,5 @@
+# Disable wandb
+import os
 from collections import Counter
 
 import torch
@@ -23,6 +25,8 @@ from preprocess.entry_coders import Stack2Seq, Stack2SeqMultiStack
 from preprocess.seq_coder import SeqCoder, SeqCoderMulti
 from preprocess.tokenizers import SimpleTokenizer
 
+os.environ["WANDB_DISABLED"] = "true"
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
 
@@ -35,16 +39,16 @@ print(f"Model sequence length: {model.max_seq_length}")
 print(f"Model size: {torch.cuda.memory_allocated() / 1024 ** 3:.2f} GB")
 
 
-dataset_key = "netbeans_pretrain_all_st"
-run_name = "bge-base-netbeans_all_st"
-bucket_name = "netbeans"
-dataset_json = "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/netbeans_2016/netbeans_stacktraces.json"
+dataset_key = "eclipse_pretrain_10_class"
+run_name = "bge-base-eclipse_10_class"
+bucket_name = "eclipse"
+dataset_json = "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/eclipse_2018/eclipse_stacktraces.json"
 language = "java"
-stack_formatter = get_formatter(language)
-generate_dataset = False
+generate_dataset = True
 batch_size = 16
-eval_size = 200
-max_num_frames = 30
+eval_size = 300
+max_num_frames = 10
+stack_formatter = get_formatter(language, max_num_frames)
 num_train_pairs = 4
 num_test_pairs = 1
 # trim_length = 0
@@ -53,67 +57,6 @@ test_only = False
 
 # Print all training parameters
 print("Train pair:", num_train_pairs, "Test pair:", num_test_pairs)
-
-
-def truncate_tokens(tokens, max_length):
-    """
-    Truncate tokens from the beginning of the sequence if they exceed max_length.
-
-    Args:
-        tokens (list): List of tokens.
-        max_length (int): Maximum allowable number of tokens.
-
-    Returns:
-        list: Truncated tokens.
-    """
-    if len(tokens) > max_length:
-        tokens = tokens[-max_length:]  # Keep the last max_length tokens
-    return tokens
-
-
-def truncate_dataset(dataset, tokenizer, max_length):
-    """
-    Truncate all text fields in a dataset.
-
-    Args:
-        dataset (Dataset): Dataset object.
-        tokenizer: Tokenizer object.
-        max_length (int): Maximum sequence length.
-
-    Returns:
-        Dataset: Updated dataset with truncated sequences.
-    """
-
-    def truncate_row(row):
-        for field in ["anchor", "positive", "negative"]:
-            row[field] = tokenizer.decode(
-                truncate_tokens(tokenizer.encode("\n".join(row[field])), max_length)
-            )
-        return row
-
-    return dataset.map(truncate_row)
-
-
-# def format_stack(stack, from_top=False):
-#     # Remove duplicate frames
-#     stack = list(dict.fromkeys(stack))
-#     stack = [frame for frame in stack if frame.lower() != "none"]
-#     if max_num_frames > 0:
-#         if from_top:
-#             stack = stack[:max_num_frames]
-#         else:
-#             stack = stack[-max_num_frames:]
-
-#     return "\n".join([f"{i+1}: {frame}" for i, frame in enumerate(stack)]).replace(
-#         "_", " "
-#     )
-
-
-def aggregate_frames(stack_list):
-    frames = []
-    for stack in stack_list:
-        frames.extend(stack)
-    return frames
 
 
 def get_data_row(coder, event, similar_stack_id, dissimilar_stack_id):
@@ -163,9 +106,9 @@ def generate_dataset_for_train_test(
 
     data_gen.reset()
 
-    stack2seq = Stack2SeqMultiStack(cased=False, trim_len=trim_length, sep=".")
+    stack2seq = Stack2Seq(cased=False, trim_len=trim_length, sep=".")
 
-    coder = SeqCoderMulti(
+    coder = SeqCoder(
         stack_loader, stack2seq, SimpleTokenizer(), min_freq=0, max_len=None
     )
 
@@ -227,66 +170,13 @@ if generate_dataset:
 
 
 print("Load the preprocessed dataset")
-train_dataset = []
 test_dataset = Dataset.load_from_disk(f"datasets/{dataset_key}_eval")
-
-if not test_only:
-    train_dataset = Dataset.load_from_disk(f"datasets/{dataset_key}_train")
-
-# Find frame frequency in train stacks
-all_train_frames = []
-for row in train_dataset:
-    if len(row["anchor"]) > 1 or len(row["positive"]) > 1:
-        print(row)
-
-    all_train_frames.extend(
-        list(dict.fromkeys([r for rr in row["anchor"] for r in rr]))
-    )
-    all_train_frames.extend(
-        list(dict.fromkeys([r for rr in row["positive"] for r in rr]))
-    )
-    all_train_frames.extend(
-        list(dict.fromkeys([r for rr in row["negative"] for r in rr]))
-    )
-
-total_stacktraces = len(train_dataset) * 3  # 3 stacks per row
-frame_counts = Counter(all_train_frames)
-# Create a dictionary for frame frequencies
-frame_freq = {frame: count for frame, count in frame_counts.items()}
-
-
-def sort_frames_by_frequency(frames, frame_freq):
-    """Sort frames based on their frequency in the training dataset."""
-    frames = [r for rr in frames for r in rr]  # Flatten the list
-    return sorted(frames, key=lambda frame: frame_freq.get(frame, 0), reverse=True)
-
-
-def sort_test_dataset_by_frequency(dataset, frame_freq):
-    """Sort frames within each row of the test dataset based on frequency."""
-
-    def sort_row(row):
-        row["anchor"] = sort_frames_by_frequency(row["anchor"], frame_freq)
-        row["positive"] = sort_frames_by_frequency(row["positive"], frame_freq)
-        row["negative"] = sort_frames_by_frequency(row["negative"], frame_freq)
-        return row
-
-    return dataset.map(sort_row)
-
-
-# Sort frames within the test dataset
-test_dataset = sort_test_dataset_by_frequency(test_dataset, frame_freq)
-
-print("Dataset Sizes - Train:", len(train_dataset), "Test:", len(test_dataset))
-
 
 print("Before formatting", test_dataset[0])
 test_dataset = test_dataset.map(format_data_row)
 print("After formatting", test_dataset[0])
 eval_dataset = test_dataset.select(range(eval_size))
-
-train_dataset = train_dataset.shuffle(seed=42)
 test_dataset = test_dataset.shuffle(seed=42)
-# train_dataset = train_dataset.map(format_data_row)
 
 # 4. Define a loss function
 loss = MultipleNegativesRankingLoss(model)
@@ -336,6 +226,11 @@ print("Initial triplet evaluation result: ", result)
 
 if test_only:
     exit()
+
+train_dataset = Dataset.load_from_disk(f"datasets/{dataset_key}_train")
+train_dataset = train_dataset.shuffle(seed=42)
+train_dataset = train_dataset.map(format_data_row)
+print("Dataset Sizes - Train:", len(train_dataset), "Test:", len(test_dataset))
 
 # 5. (Optional) Specify training arguments
 args = SentenceTransformerTrainingArguments(

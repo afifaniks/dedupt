@@ -103,6 +103,7 @@ def train_issue_model(
     test_data_for_score = [copy.deepcopy(x) for x in islice(data_gen.test(), 50)]
     train_sim_pairs_data_for_score = list(train_selector.generate(train_data_for_score))
     test_sim_pairs_data_for_score = list(train_selector.generate(test_data_for_score))
+    print("Data sample:", train_data_for_score[0])
     data_gen.reset()
     assert len(train_sim_pairs_data_for_score) > 0
 

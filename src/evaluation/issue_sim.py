@@ -1,15 +1,20 @@
-from typing import List, Tuple, Dict, Iterable, Callable
+from typing import Callable, Dict, Iterable, List, Tuple
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from sklearn.metrics import precision_recall_curve, precision_score, recall_score
 from tqdm import tqdm
 
-from evaluation.stack_sim import metric_in_time, bootstrap_bin_metric
+from evaluation.stack_sim import bootstrap_bin_metric, metric_in_time
 
 
-def bootstrap_aggregate_metric(metric: Callable[[List[float]], float], y: List[float],
-                               err: float = 0.05, iters: int = 100, size: int = 1):
+def bootstrap_aggregate_metric(
+    metric: Callable[[List[float]], float],
+    y: List[float],
+    err: float = 0.05,
+    iters: int = 100,
+    size: int = 1,
+):
     values = []
     y = np.array(y)
     real_value = metric(y)
@@ -38,17 +43,19 @@ def plot_prec_rec_curve(y_true, y_pred):
 
 
 def draw_prec_rec_at_time(y_true, y_pred, th=0):
-    prec, l_prec, r_prec = metric_in_time(y_true, y_pred >= th, precision_score, with_ci=True)
+    prec, l_prec, r_prec = metric_in_time(
+        y_true, y_pred >= th, precision_score, with_ci=True
+    )
     rec, l_rec, r_rec = metric_in_time(y_true, y_pred >= th, recall_score, with_ci=True)
     x = range(len(prec))
 
     ax = plt.subplot(222)
 
-    ax.plot(x, prec, color='b', label='precision')
-    ax.fill_between(x, l_prec, r_prec, color='b', alpha=.1)
+    ax.plot(x, prec, color="b", label="precision")
+    ax.fill_between(x, l_prec, r_prec, color="b", alpha=0.1)
 
-    ax.plot(x, rec, color='r', label='recall')
-    ax.fill_between(x, l_rec, r_rec, color='r', alpha=.1)
+    ax.plot(x, rec, color="r", label="recall")
+    ax.fill_between(x, l_rec, r_rec, color="r", alpha=0.1)
 
     ax.set_ylim((0, 1.1))
     plt.legend(loc="lower right")
@@ -71,7 +78,9 @@ def transform_pred(preds, k=1):
     return np.array(y_true), np.array(y_pred)
 
 
-def score_model(preds: List[Tuple[int, Dict[int, float]]], th=None, k=1, full=True, model_name=None):
+def score_model(
+    preds: List[Tuple[int, Dict[int, float]]], th=None, k=1, full=True, model_name=None
+):
     th = th or float("-inf")
     y_true, y_pred = transform_pred(preds, k)
 
@@ -139,7 +148,9 @@ def paper_metrics(preds: List[Tuple[int, Dict[int, float]]]) -> Dict[str, float]
     return scores
 
 
-def paper_metrics_iter(preds: Iterable[Tuple[int, Dict[int, float]]]) -> Dict[str, float]:
+def paper_metrics_iter(
+    preds: Iterable[Tuple[int, Dict[int, float]]]
+) -> Dict[str, float]:
     aps = []
     correct_top = []
     total_preds = 0
@@ -153,6 +164,7 @@ def paper_metrics_iter(preds: Iterable[Tuple[int, Dict[int, float]]]) -> Dict[st
                 break
 
     scores = {}
+    scores["map"] = map_metric(preds)
     scores["mrr"] = bootstrap_aggregate_metric(np.mean, aps)
     scores["rr@1"] = bootstrap_aggregate_metric(np.mean, [x < 1 for x in correct_top])
     scores["rr@5"] = bootstrap_aggregate_metric(np.mean, [x < 5 for x in correct_top])

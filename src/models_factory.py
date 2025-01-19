@@ -71,6 +71,8 @@ def create_neural_model(
     model_name: str = "s3m",
     language: str = "",
     multi_stack: bool = False,
+    bucket_name: str = "",
+    max_frames: int = 10,
 ) -> NeuralModel:
     stack2seq = Stack2Seq(cased=False, trim_len=trim_len, sep=sep)
     coder = SeqCoder(
@@ -80,7 +82,7 @@ def create_neural_model(
 
     if model_name == "transformer":
         print("Multi stack status:", multi_stack)
-        stack_formatter = get_formatter(language)
+        stack_formatter = get_formatter(language, max_frames)
         if multi_stack:
             stack2seq = Stack2SeqMultiStack(cased=False, trim_len=trim_len, sep=sep)
             coder = SeqCoderMulti(
@@ -90,7 +92,7 @@ def create_neural_model(
         encoder = TransformerEncoder(
             coder=coder,
             stack_formatter=stack_formatter,
-            model_name="models/bge-base-netbeans_10/final",
+            model_name=f"models/bge-base-{bucket_name}_10_class/final",
             multi_stack=multi_stack,
         )
 

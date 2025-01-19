@@ -104,6 +104,7 @@ def neural_issues(
         model_name=method_name,
         language=lang,
         multi_stack=multi_stack,
+        bucket_name=bucket_data.name,
     )
     print("Model")
     print(model)
@@ -117,7 +118,7 @@ def neural_issues(
         epochs=epochs,
         batch_size=25,
         period=10000,
-        selection_from_event_num=4,
+        selection_from_event_num=5,
         writer=None,
     )
 

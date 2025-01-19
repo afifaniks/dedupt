@@ -42,7 +42,7 @@ def main():
     parser.add_argument("--bucket_name", type=str, help="Bucket name of reports")
     parser.add_argument("--lang", type=str, help="java/cpp")
     parser.add_argument(
-        "--multi_stack", type=bool, default=False, help="Multi stack status"
+        "--multi_stack", action="store_true", help="Enable multi stack status"
     )
     args = parser.parse_args()
 
@@ -58,7 +58,7 @@ def main():
             max_len=None,
             trim_len=args.trim_len,
             loss_name="ranknet",
-            epochs=4,
+            epochs=3,
             method_name=args.method,
             lang=args.lang,
             multi_stack=args.multi_stack,

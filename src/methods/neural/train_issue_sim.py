@@ -8,7 +8,7 @@ from typing import List, Tuple
 
 import numpy as np
 import torch
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, roc_curve
 from tqdm import tqdm
 
 from data.buckets.bucket_data import BucketData
@@ -66,7 +66,6 @@ def log_metrics_auc(
     sim_stack_model: NeuralModel,
     test_data_for_score: List[StackAdditionState],
     bucket_data: BucketData,
-    k=1,
 ):
     sim_stack_model.eval()
     test_data_for_score.reset()
@@ -80,39 +79,45 @@ def log_metrics_auc(
     same_id_events = [event for event in all_events if event.is_id == event.st_id]
     diff_id_events = [event for event in all_events if event.is_id != event.st_id]
 
+    print(
+        "Same ID events:", len(same_id_events), "Diff ID events:", len(diff_id_events)
+    )
+
     if len(same_id_events) < 50 or len(diff_id_events) < 50:
         raise ValueError("Not enough events to sample from")
 
-    selected_same_id_events = random.sample(same_id_events, 50)
-    selected_diff_id_events = random.sample(diff_id_events, 50)
+    total_auc = 0
+    num_iter = 50
 
-    selected_events = selected_same_id_events + selected_diff_id_events
-    random.shuffle(selected_events)
+    for iter_ in range(num_iter):
+        selected_same_id_events = random.sample(same_id_events, 50)
+        selected_diff_id_events = random.sample(diff_id_events, 50)
 
-    with torch.no_grad():
-        ps_model = PairStackBasedSimModel(sim_stack_model, MaxIssueScorer())
-        test_preds = ps_model.predict(selected_events)
-        # test_score = score_model(test_preds, full=False)
+        selected_events = selected_same_id_events + selected_diff_id_events
+        random.shuffle(selected_events)
 
-        # Calculate auc metric
-        y_true, y_pred = [], []
-        for issue_id, actual_dup_id, prs in test_preds:
-            sorted_pr = sorted(prs.items(), key=lambda x: -x[1])
-            i = 0
-            top_pr = []
-            while i < len(sorted_pr) and (i <= k or sorted_pr[i] == sorted_pr[0]):
-                top_pr.append(sorted_pr[i])
-                i += 1
-            y_true.append(0 if bucket_data.get_dup_id(issue_id) == issue_id else 1)
-            y_pred.append(top_pr[-1][1])
+        with torch.no_grad():
+            ps_model = PairStackBasedSimModel(sim_stack_model, MaxIssueScorer())
+            test_preds = ps_model.predict(selected_events)
+            # test_score = score_model(test_preds, full=False)
 
-        y_true = np.array(y_true)
-        y_pred = np.array(y_pred)
+            # Calculate auc metric
+            y_true, y_pred = [], []
+            for issue_id, actual_dup_id, prs in test_preds:
+                sorted_pr = sorted(prs.items(), key=lambda x: -x[1])
+                y_true.append(0 if bucket_data.get_dup_id(issue_id) == issue_id else 1)
+                y_pred.append(sorted_pr[0][1])
 
-        auc = roc_auc_score(y_true, y_pred)
+            y_true = np.array(y_true)
+            y_pred = np.array(y_pred)
 
-        print("AUC:", auc)
-        exit()
+            auc = roc_auc_score(y_true, y_pred)
+            fpr, tpr, th = roc_curve(y_true, y_pred, pos_label=1)
+            total_auc += auc
+            print(f"Sample {iter_}: AUC: {auc}, \nFPR: {fpr}, \nTPR: {tpr} \nTH: {th}")
+
+    print("Mean AUC:", total_auc / num_iter)
+    exit()
 
 
 def log_all_data_scores(sim_stack_model: NeuralModel, data_gen):

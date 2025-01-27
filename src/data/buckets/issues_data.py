@@ -83,3 +83,14 @@ class BucketDataset:
         return self.generate_events(
             self.warmup_days + self.train_days + self.val_days, self.test_days
         )
+
+    def generate_events_for_auc(
+        self, start: float, longitude: float
+    ) -> Iterable[StackAdditionState]:
+        event_model = self._cached_event_state(start)
+        return event_model.collect_auc(self.time_slice_events(start, start + longitude))
+
+    def test_auc(self) -> Iterable[StackAdditionState]:
+        return self.generate_events_for_auc(
+            self.warmup_days + self.train_days + self.val_days, self.test_days
+        )

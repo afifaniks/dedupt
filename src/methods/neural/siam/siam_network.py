@@ -107,6 +107,7 @@ class SiamSentTransformerModelMultiStack(NeuralModel):
         )
         self.alpha = nn.Parameter(torch.tensor(0.5))
         self.cache = {}
+        print("Current model name:", self.name())
 
     def fit(
         self,
@@ -172,7 +173,7 @@ class SiamSentTransformerModelMultiStack(NeuralModel):
             return y_pr
 
     def name(self):
-        return self.encoder.name() + "_senttrans_" + self.classifier.name()
+        return self.encoder.name() + "_senttrans"
 
     def train(self, mode=True):
         super().train(mode)

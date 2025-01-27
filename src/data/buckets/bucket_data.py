@@ -46,6 +46,10 @@ class BucketData(ABC):
     def stack_loader(self, multi_stack: Optional[bool]) -> StackLoader:
         raise NotImplementedError
 
+    @abstractmethod
+    def get_dup_id(self, st_id: int) -> int:
+        raise NotImplementedError
+
 
 class OtherBucketData(BucketData):
     def __init__(
@@ -66,6 +70,7 @@ class OtherBucketData(BucketData):
         self.actions = None
         self.lang = lang
         self.multi_stack = multi_stack
+        self.dup_id_by_bug_id = {}
 
     def load(self) -> "OtherBucketData":
         self.actions = []
@@ -79,8 +84,11 @@ class OtherBucketData(BucketData):
                 continue
 
             st_id = report["bug_id"]
+            # if report["dup_id"] is not None:
+            #     print("Found dup_id", report["dup_id"])
             dup_id = report["dup_id"] or st_id
             ts = (report["creation_ts"] - first_ts) / day_secs
+            self.dup_id_by_bug_id[st_id] = dup_id
 
             addition_event = StackAdditionEvent(
                 len(self.actions), st_id, dup_id, ts, True
@@ -99,3 +107,6 @@ class OtherBucketData(BucketData):
             return JsonStackLoaderJavaMulti(self.reports_path)
 
         return JsonStackLoader(self.reports_path)
+
+    def get_dup_id(self, st_id: int) -> int:
+        return self.dup_id_by_bug_id[st_id]

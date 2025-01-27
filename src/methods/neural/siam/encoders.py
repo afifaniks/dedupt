@@ -117,6 +117,7 @@ class TransformerEncoder:
         self.output_dim = out_dim
         self.coder = coder
         self.multi_stack = multi_stack
+        self._name = model_name.replace("/", "_")
 
     @lru_cache(maxsize=200_000)
     def forward(self, stack_id: int) -> torch.Tensor:

@@ -113,12 +113,13 @@ def neural_issues(
     train_issue_model(
         model,
         dataset,
+        bucket_data,
         loss_name,
         optimizers,
         epochs=epochs,
         batch_size=25,
         period=10000,
-        selection_from_event_num=5,
+        selection_from_event_num=3,
         writer=None,
     )
 

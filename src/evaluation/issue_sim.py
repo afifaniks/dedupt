@@ -154,7 +154,9 @@ def paper_metrics_iter(
     aps = []
     correct_top = []
     total_preds = 0
+    preds_list = []
     for true_is_id, is_scores in tqdm(preds):
+        preds_list.append((true_is_id, is_scores))
         total_preds += 1
         sorted_scores = sorted(is_scores.items(), key=lambda x: x[1], reverse=True)
         for i, (is_id, score) in enumerate(sorted_scores):
@@ -164,7 +166,8 @@ def paper_metrics_iter(
                 break
 
     scores = {}
-    scores["map"] = map_metric(preds)
+    scores["map"] = map_metric(preds_list)
+    scores["auc"] = auc_metric(preds_list)
     scores["mrr"] = bootstrap_aggregate_metric(np.mean, aps)
     scores["rr@1"] = bootstrap_aggregate_metric(np.mean, [x < 1 for x in correct_top])
     scores["rr@5"] = bootstrap_aggregate_metric(np.mean, [x < 5 for x in correct_top])

@@ -155,7 +155,7 @@ if generate_dataset:
         dataset_json,
         num_train_pairs,
         num_test_pairs,
-        0,
+        2,
         test_only=test_only,
     )
 

@@ -1,6 +1,6 @@
 import os
 import pickle
-from typing import Iterable, Dict, Optional
+from typing import Dict, Iterable, Optional
 
 from tqdm import tqdm
 
@@ -9,7 +9,14 @@ from data.objects import Issue
 
 
 class StackAdditionState:
-    def __init__(self, id: int, st_id: int, issues: Dict[int, Issue], is_id: int, label: bool = True):
+    def __init__(
+        self,
+        id: int,
+        st_id: int,
+        issues: Dict[int, Issue],
+        is_id: int,
+        label: bool = True,
+    ):
         self.id = id
         self.st_id = st_id
         self.issues = issues
@@ -18,7 +25,9 @@ class StackAdditionState:
 
     @staticmethod
     def from_event(event: StackAdditionEvent, issues: Dict[int, Issue]):
-        return StackAdditionState(event.id, event.st_id, issues, event.is_id, event.label)
+        return StackAdditionState(
+            event.id, event.st_id, issues, event.is_id, event.label
+        )
 
 
 class EventStateModel:
@@ -46,16 +55,32 @@ class EventStateModel:
         self.actual_issues.add(is_id)
 
         if self.warmup_days is not None and self.warmup_days != 0:
-            self.actual_issues = set(x for x in self.actual_issues if x != -1 and \
-                                     self.current_ts - self.issues[x].last_ts() < self.warmup_days)
+            self.actual_issues = set(
+                x
+                for x in self.actual_issues
+                if x != -1
+                and self.current_ts - self.issues[x].last_ts() < self.warmup_days
+            )
 
     def warmup(self, actions: Iterable[StackAdditionEvent]):
         for action in tqdm(actions):
             self.update_state(action)
 
-    def collect(self, actions: Iterable[StackAdditionEvent]) -> Iterable[StackAdditionState]:
+    def collect(
+        self, actions: Iterable[StackAdditionEvent]
+    ) -> Iterable[StackAdditionState]:
         for action in actions:
             if action.label and action.is_id != -1 and action.is_id != action.st_id:
+                current_issues = {id: self.issues[id] for id in self.actual_issues}
+                event = StackAdditionState.from_event(action, current_issues)
+                yield event
+            self.update_state(action)
+
+    def collect_auc(
+        self, actions: Iterable[StackAdditionEvent]
+    ) -> Iterable[StackAdditionState]:
+        for action in actions:
+            if action.label and action.is_id != -1:
                 current_issues = {id: self.issues[id] for id in self.actual_issues}
                 event = StackAdditionState.from_event(action, current_issues)
                 yield event
@@ -69,16 +94,22 @@ class EventStateModel:
         if days_num == int(days_num):
             days_num = int(days_num)
         os.makedirs("../event_states", exist_ok=True)
-        return f'../event_states/{self.name}_event_state_{days_num}.pickle'
+        return f"../event_states/{self.name}_event_state_{days_num}.pickle"
 
     def load(self, days_num: float):
-        with open(self.file_name(days_num), 'rb') as f:
+        with open(self.file_name(days_num), "rb") as f:
             tmp_dict = pickle.load(f)
 
-        for data_field in ['issues', 'stacks', 'actual_issues', 'current_ts', 'warmup_days']:
+        for data_field in [
+            "issues",
+            "stacks",
+            "actual_issues",
+            "current_ts",
+            "warmup_days",
+        ]:
             self.__dict__[data_field] = tmp_dict[data_field]
         # self.__dict__.update(tmp_dict)
 
     def save(self, days_num: float):
-        with open(self.file_name(days_num), 'wb') as f:
+        with open(self.file_name(days_num), "wb") as f:
             pickle.dump(self.__dict__, f)

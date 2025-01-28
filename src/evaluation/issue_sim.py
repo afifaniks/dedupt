@@ -65,7 +65,7 @@ def draw_prec_rec_at_time(y_true, y_pred, th=0):
 
 def transform_pred(preds, k=1):
     y_true, y_pred = [], []
-    for y_tr, prs in preds:
+    for _, y_tr, prs in preds:
         sorted_pr = sorted(prs.items(), key=lambda x: -x[1])
         i = 0
         top_pr = []
@@ -149,15 +149,19 @@ def paper_metrics(preds: List[Tuple[int, Dict[int, float]]]) -> Dict[str, float]
 
 
 def paper_metrics_iter(
-    preds: Iterable[Tuple[int, Dict[int, float]]]
+    preds: Iterable[Tuple[int, int, Dict[int, float]]]
 ) -> Dict[str, float]:
     aps = []
     correct_top = []
     total_preds = 0
     preds_list = []
-    for true_is_id, is_scores in tqdm(preds):
+    print("Calculating metrics...")
+
+    for _, true_is_id, is_scores in preds:
         preds_list.append((true_is_id, is_scores))
         total_preds += 1
+        if (total_preds % 10) == 0:
+            print(f"Processed {total_preds} predictions")
         sorted_scores = sorted(is_scores.items(), key=lambda x: x[1], reverse=True)
         for i, (is_id, score) in enumerate(sorted_scores):
             if is_id == true_is_id:

@@ -119,8 +119,9 @@ def neural_issues(
         epochs=epochs,
         batch_size=25,
         period=10000,
-        selection_from_event_num=3,
+        selection_from_event_num=5,
         writer=None,
+        skip_training=False,
     )
 
     ps_model = PairStackBasedSimModel(model, MaxIssueScorer())

@@ -73,6 +73,7 @@ def create_neural_model(
     multi_stack: bool = False,
     bucket_name: str = "",
     max_frames: int = 10,
+    encoder_path: str = None,
 ) -> NeuralModel:
     stack2seq = Stack2Seq(cased=False, trim_len=trim_len, sep=sep)
     coder = SeqCoder(
@@ -92,7 +93,7 @@ def create_neural_model(
         encoder = TransformerEncoder(
             coder=coder,
             stack_formatter=stack_formatter,
-            model_name=f"models/bge-base-{bucket_name}_10_class/final",
+            model_name=encoder_path,
             multi_stack=multi_stack,
         )
 

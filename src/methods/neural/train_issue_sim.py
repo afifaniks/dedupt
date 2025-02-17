@@ -152,24 +152,26 @@ def train_issue_model(
     selection_from_event_num: int = 4,
     writer=None,
     period: int = 25,
+    skip_training=False,
 ):
     if loss_name == "point":
         train_selector = RandomPairSimSelector(selection_from_event_num)
         loss_computer = PointLossComputer(sim_stack_model, train_selector)
     elif loss_name == "ranknet":
         train_selector = RandomTripletSelector(selection_from_event_num)
-        test_selector = RandomTripletSelector(2)
+        # test_selector = RandomTripletSelector(2)
         loss_computer = RanknetLossComputer(sim_stack_model, train_selector)
     elif loss_name == "triplet":
         train_selector = RandomTripletSelector(selection_from_event_num)
+        # test_selector = RandomTripletSelector(2)
         loss_computer = TripletLossComputer(sim_stack_model, train_selector, margin=0.2)
     else:
         raise ValueError
 
-    train_data_for_score = [copy.deepcopy(x) for x in islice(data_gen.train(), 20)]
-    test_data_for_score = [copy.deepcopy(x) for x in islice(data_gen.test(), 20)]
+    train_data_for_score = [copy.deepcopy(x) for x in islice(data_gen.train(), 50)]
+    test_data_for_score = [copy.deepcopy(x) for x in islice(data_gen.test(), 50)]
     train_sim_pairs_data_for_score = list(train_selector.generate(train_data_for_score))
-    test_sim_pairs_data_for_score = list(test_selector.generate(test_data_for_score))
+    test_sim_pairs_data_for_score = list(train_selector.generate(test_data_for_score))
     print("Data sample:", train_data_for_score[0])
     data_gen.reset()
     assert len(train_sim_pairs_data_for_score) > 0
@@ -180,7 +182,6 @@ def train_issue_model(
     n_iter = 0
     best_loss = math.inf
     print("Total epochs:", epochs)
-    skip_training = True
     if skip_training:
         print("Skipping training")
     else:
@@ -241,7 +242,8 @@ def train_issue_model(
                 print("Loss improved. Saving new best model...")
                 best_loss = test_loss
                 torch.save(
-                    sim_stack_model.state_dict(), f"models/{sim_stack_model.name()}.pth"
+                    sim_stack_model.state_dict(),
+                    f"/home/mdafifal.mamun/research/S3M/models/{sim_stack_model.name()}.pth",
                 )
 
     # Load best model
@@ -252,7 +254,7 @@ def train_issue_model(
             weights_only=True,
         )
     )
-    log_metrics_auc(sim_stack_model, data_gen, bucket_data)
+    # log_metrics_auc(sim_stack_model, data_gen, bucket_data)
     log_all_data_scores(sim_stack_model, data_gen)
 
     if writer:

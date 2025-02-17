@@ -40,9 +40,15 @@ def main():
     )
     parser.add_argument("--data_path", type=str, help="Path to file with reports")
     parser.add_argument("--bucket_name", type=str, help="Bucket name of reports")
+    parser.add_argument(
+        "--encoder_path", type=str, help="Path to the trained SBERT encoder"
+    )
     parser.add_argument("--lang", type=str, help="java/cpp")
     parser.add_argument(
         "--multi_stack", action="store_true", help="Enable multi stack status"
+    )
+    parser.add_argument(
+        "--loss", type=str, default="ranknet", help="Loss function for neural methods"
     )
     args = parser.parse_args()
 
@@ -57,11 +63,12 @@ def main():
             bucket_netbeans,
             max_len=None,
             trim_len=args.trim_len,
-            loss_name="ranknet",
-            epochs=3,
+            loss_name=args.loss,
+            epochs=4,
             method_name=args.method,
             lang=args.lang,
             multi_stack=args.multi_stack,
+            encoder_path=args.encoder_path,
         )
     else:
         if args.method == "durfex":

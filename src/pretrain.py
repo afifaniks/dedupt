@@ -1,5 +1,7 @@
 # Disable wandb
+import json
 import os
+import time
 from collections import Counter
 
 import torch
@@ -30,7 +32,8 @@ os.environ["WANDB_DISABLED"] = "true"
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
 
-model = SentenceTransformer("BAAI/bge-base-en")
+plm_key = "BAAI/bge-base-en"
+model = SentenceTransformer(plm_key)
 print(f"Model sequence length: {model.max_seq_length}")
 
 # model.max_seq_length = 2048
@@ -49,11 +52,31 @@ batch_size = 16
 eval_size = 300
 max_num_frames = 10
 stack_formatter = get_formatter(language, max_num_frames)
-num_train_pairs = 4
+num_train_pairs = 5
 num_test_pairs = 1
-# trim_length = 0
+trim_length = 2
 frame_freq = {}
 test_only = False
+
+config_to_write = {
+    "dataset_key": dataset_key,
+    "run_name": run_name,
+    "plm_key": plm_key,
+    "bucket_name": bucket_name,
+    "dataset_json": dataset_json,
+    "language": language,
+    "generate_dataset": generate_dataset,
+    "batch_size": batch_size,
+    "eval_size": eval_size,
+    "max_num_frames": max_num_frames,
+    "num_train_pairs": num_train_pairs,
+    "num_test_pairs": num_test_pairs,
+    "frame_freq": frame_freq,
+    "test_only": test_only,
+    "trim_length": trim_length,
+}
+
+print("Configurations:\n", json.dumps(config_to_write, indent=2))
 
 # Print all training parameters
 print("Train pair:", num_train_pairs, "Test pair:", num_test_pairs)
@@ -155,7 +178,7 @@ if generate_dataset:
         dataset_json,
         num_train_pairs,
         num_test_pairs,
-        2,
+        trim_length,
         test_only=test_only,
     )
 
@@ -223,6 +246,9 @@ print("Initial embedding evaluation result: ", res_embedding)
 
 result = dev_evaluator(model)
 print("Initial triplet evaluation result: ", result)
+
+config_to_write["initial_embedding_eval_result"] = res_embedding
+config_to_write["initial_triplet_eval_result"] = result
 
 if test_only:
     exit()
@@ -292,9 +318,20 @@ print("Final triplet test result: ", result)
 res_embedding = test_embedding_evaluator(model)
 print("Final embedding test result: ", res_embedding)
 
+config_to_write["final_embedding_eval_result"] = res_embedding
+config_to_write["final_triplet_eval_result"] = result
 
 # 8. Save the trained model
 model.save_pretrained(f"models/{run_name}/final")
+
+json.dump(
+    config_to_write,
+    open(
+        f"/home/mdafifal.mamun/research/S3M/out/pretrain_out/{run_name}_{time.time()}.json",
+        "w",
+    ),
+    indent=2,
+)
 
 # 9. (Optional) Push it to the Hugging Face Hub
 # model.push_to_hub("mpnet-base-all-nli-triplet")

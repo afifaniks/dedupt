@@ -52,6 +52,8 @@ def main():
     )
     args = parser.parse_args()
 
+    print("Arguments:", args)
+
     start = time()
 
     bucket_netbeans = OtherBucketData(

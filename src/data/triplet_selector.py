@@ -1,5 +1,6 @@
 from abc import ABC
-from typing import Tuple, List, Iterable
+from typing import Iterable, List, Tuple
+
 import numpy as np
 
 from data.buckets.issues_data import StackAdditionState
@@ -9,7 +10,9 @@ class TripletSelector(ABC):
     def __call__(self, event: StackAdditionState) -> Tuple[List[int], List[int]]:
         raise NotImplementedError
 
-    def generate(self, events: List[StackAdditionState]) -> Iterable[Tuple[int, int, int]]:
+    def generate(
+        self, events: List[StackAdditionState]
+    ) -> Iterable[Tuple[int, int, int]]:
         for event in events:
             try:
                 st_ids, target = self.__call__(event)
@@ -38,7 +41,18 @@ class RandomTripletSelector(TripletSelector):
         for iid in event.issues.keys() - {event.is_id}:
             bad_stacks += list(event.issues[iid].stacks.keys())
 
-        good_stacks = good_stacks[np.random.choice(len(good_stacks), self.size)]
+        good_stacks_set = set(good_stacks)
+
+        if len(good_stacks_set) <= self.size:
+            # Fill the rest with random choice
+            good_stacks = list(good_stacks_set) + list(
+                np.random.choice(good_stacks, self.size - len(good_stacks_set))
+            )
+        else:
+            # Select unique random choice
+            good_stacks = np.random.choice(good_stacks, self.size, replace=False)
+
+        # good_stacks = good_stacks[np.random.choice(len(good_stacks), self.size)]
         bad_stacks = np.array(bad_stacks)[np.random.choice(len(bad_stacks), self.size)]
 
         return list(good_stacks), list(bad_stacks)

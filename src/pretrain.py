@@ -41,26 +41,38 @@ print(f"Model sequence length: {model.max_seq_length}")
 # Find model size in CUDA
 print(f"Model size: {torch.cuda.memory_allocated() / 1024 ** 3:.2f} GB")
 
-
-dataset_key = "eclipse_pretrain_10_class"
-run_name = "bge-base-eclipse_10_class"
-bucket_name = "eclipse"
-dataset_json = "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/eclipse_2018/eclipse_stacktraces.json"
+dataset_paths = {
+    "eclipse": "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/eclipse_2018/eclipse_stacktraces.json",
+    "netbeans": "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/netbeans_2016/netbeans_stacktraces.json",
+}
+bucket_name = "netbeans"
+dataset_json = dataset_paths[bucket_name]
 language = "java"
 generate_dataset = True
 batch_size = 16
 eval_size = 300
 max_num_frames = 10
 stack_formatter = get_formatter(language, max_num_frames)
-num_train_pairs = 5
+num_train_pairs = 7
 num_test_pairs = 1
-trim_length = 2
+trim_length = 0
 frame_freq = {}
 test_only = False
+warmup_days = 350
+train_days = 3850
+test_days = 700
+val_days = 140
+plm_key_norm = plm_key.replace("/", "_").strip().lower()
+dataset_key = f"{bucket_name}_pretrain_{max_num_frames}frames_{num_train_pairs}train_{trim_length}trim"
+run_name = f"{plm_key_norm}_{bucket_name}_{max_num_frames}frames_{num_train_pairs}train_{trim_length}trim"
 
 config_to_write = {
     "dataset_key": dataset_key,
     "run_name": run_name,
+    "train_days": train_days,
+    "test_days": test_days,
+    "val_days": val_days,
+    "warmup_days": warmup_days,
     "plm_key": plm_key,
     "bucket_name": bucket_name,
     "dataset_json": dataset_json,
@@ -116,10 +128,10 @@ def generate_dataset_for_train_test(
     bucket_data = OtherBucketData(
         bucket_name,
         dataset_path,
-        3850,
-        700,
-        350,
-        140,
+        train_days,
+        test_days,
+        warmup_days,
+        val_days,
         lang=language,
     )
     bucket_data.load()
@@ -320,6 +332,7 @@ print("Final embedding test result: ", res_embedding)
 
 config_to_write["final_embedding_eval_result"] = res_embedding
 config_to_write["final_triplet_eval_result"] = result
+config_to_write["model_save_path"] = f"models/{run_name}/final"
 
 # 8. Save the trained model
 model.save_pretrained(f"models/{run_name}/final")

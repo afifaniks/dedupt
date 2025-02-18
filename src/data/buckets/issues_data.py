@@ -19,14 +19,11 @@ class BucketDataset:
 
         self.train_done = False
         self.test_done = False
-        self.total_events = None
 
     def time_slice_events(
         self, start: float, finish: float
     ) -> List[StackAdditionEvent]:
-        valid_events = [event for event in self.events if start <= event.ts < finish]
-        self.total_events = len(valid_events)
-        return valid_events
+        return [event for event in self.events if start <= event.ts < finish]
 
     def _cached_event_state(self, until_day: float = None) -> EventStateModel:
         if until_day is None:

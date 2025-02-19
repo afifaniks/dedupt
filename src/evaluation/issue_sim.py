@@ -173,9 +173,11 @@ def paper_metrics_iter(
     scores["map"] = map_metric(preds_list)
     scores["auc"] = auc_metric(preds_list)
     scores["mrr"] = bootstrap_aggregate_metric(np.mean, aps)
-    scores["rr@1"] = bootstrap_aggregate_metric(np.mean, [x < 1 for x in correct_top])
-    scores["rr@5"] = bootstrap_aggregate_metric(np.mean, [x < 5 for x in correct_top])
-    scores["rr@10"] = bootstrap_aggregate_metric(np.mean, [x < 10 for x in correct_top])
+
+    for i in range(1, 11):
+        scores[f"rr@{i}"] = bootstrap_aggregate_metric(
+            np.mean, [x < i for x in correct_top]
+        )
 
     for name, score in scores.items():
         print(f"{name}: {score}")

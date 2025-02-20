@@ -74,6 +74,7 @@ def neural_issues(
     method_name: str = "",
     lang: str = "",
     multi_stack: bool = False,
+    encoder_path: str = None,
 ):
     set_seed(random_seed)
     print("Dataset:", bucket_data.name)
@@ -105,6 +106,8 @@ def neural_issues(
         language=lang,
         multi_stack=multi_stack,
         bucket_name=bucket_data.name,
+        max_frames=10,
+        encoder_path=encoder_path,
     )
     print("Model")
     print(model)
@@ -119,7 +122,7 @@ def neural_issues(
         epochs=epochs,
         batch_size=25,
         period=10000,
-        selection_from_event_num=5,
+        selection_from_event_num=4,
         writer=None,
         skip_training=False,
     )

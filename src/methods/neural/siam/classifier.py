@@ -99,7 +99,6 @@ class StackClassifier(nn.Module):
                 nn.Linear(self.input_dim, int(self.input_dim / 2)),
                 nn.ReLU(),
                 nn.Linear(int(self.input_dim / 2), out_num),
-                nn.Sigmoid(),
             )
 
     def forward(self, v1: torch.tensor, v2: torch.tensor) -> torch.tensor:

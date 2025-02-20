@@ -67,6 +67,50 @@ class JavaStackFormatter(StackFormatter):
         return "java"
 
 
+class PretrainStackFormatter(StackFormatter):
+    def __init__(self, from_top: bool, max_num_frames: int) -> None:
+        super().__init__(from_top, max_num_frames)
+
+    def _split_camel_mountain_case(self, text):
+        # Split on transition from lowercase to uppercase or uppercase to lowercase
+        words = re.findall(r"[A-Z](?:[a-z]+|[A-Z]*(?=[A-Z]|$))|[a-z]+", text)
+        return words
+
+    def format(self, stack) -> str:
+        # Remove duplicate frames
+        stack = list(dict.fromkeys(stack))
+
+        # Seperate by camel case
+
+        stack = [frame for frame in stack if frame.lower() != "none"]
+        if self.max_num_frames > 0:
+            if self.from_top:
+                stack = stack[: self.max_num_frames]
+            else:
+                stack = stack[-self.max_num_frames :]
+
+        exception_flag = False
+        if stack[-1].startswith("EXC"):
+            stack[-1] = stack[-1].replace("EXC", "")
+            exception_flag = True
+
+        stack = [self._split_camel_mountain_case(frame) for frame in stack]
+
+        if exception_flag:
+            exception = stack[-1]
+            stack = [frame if len(frame) > 5 else frame for frame in stack[:-1]]
+            stack.append(exception)
+        else:
+            stack = [frame if len(frame) > 5 else frame for frame in stack]
+
+        return "\n".join(
+            [f"{i+1}: {' '.join(frame).lower()}" for i, frame in enumerate(stack)]
+        ).strip()
+
+    def name(self) -> str:
+        return "pretrain"
+
+
 # Make a factory of fomatters
 def get_formatter(name: str, num_frames: int) -> StackFormatter:
     print("Selected formatter:", name, "num_frames:", num_frames)
@@ -74,5 +118,7 @@ def get_formatter(name: str, num_frames: int) -> StackFormatter:
         return CppStackFormatter(False, num_frames)
     elif name == "java":
         return JavaStackFormatter(False, num_frames)
+    elif name == "pretrain":
+        return PretrainStackFormatter(False, num_frames)
     else:
         raise ValueError(f"Unknown formatter name: {name}")

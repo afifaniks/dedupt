@@ -42,11 +42,17 @@ def log_metrics(
         train_loss_value = loss_computer.get_eval_raws(train_sim_pairs_data_for_score)
         test_loss_value = loss_computer.get_eval_raws(test_sim_pairs_data_for_score)
 
+        # sim_stack_model.encoder.clear_cache()
+        # sim_stack_model.encoder.enable_cache = True
+
         ps_model = PairStackBasedSimModel(sim_stack_model, MaxIssueScorer())
         train_preds = ps_model.predict(train_data_for_score)
         test_preds = ps_model.predict(test_data_for_score)
         train_score = score_model(train_preds, full=False)
         test_score = score_model(test_preds, full=False)
+
+        # sim_stack_model.encoder.clear_cache()
+        # sim_stack_model.encoder.enable_cache = False
     print(
         prefix + f"Train loss: {round(train_loss_value, 4)}. "
         f"Test loss: {round(test_loss_value, 4)}. "
@@ -168,8 +174,8 @@ def train_issue_model(
     else:
         raise ValueError
 
-    train_data_for_score = [copy.deepcopy(x) for x in islice(data_gen.train(), 50)]
-    test_data_for_score = [copy.deepcopy(x) for x in islice(data_gen.test(), 50)]
+    train_data_for_score = [copy.deepcopy(x) for x in islice(data_gen.train(), 100)]
+    test_data_for_score = [copy.deepcopy(x) for x in islice(data_gen.test(), 100)]
     train_sim_pairs_data_for_score = list(train_selector.generate(train_data_for_score))
     test_sim_pairs_data_for_score = list(train_selector.generate(test_data_for_score))
     print("Data sample:", train_data_for_score[0])
@@ -255,6 +261,9 @@ def train_issue_model(
         )
     )
     # log_metrics_auc(sim_stack_model, data_gen, bucket_data)
+
+    # sim_stack_model.encoder.clear_cache()
+    # sim_stack_model.encoder.enable_cache = True
     log_all_data_scores(sim_stack_model, data_gen)
 
     if writer:

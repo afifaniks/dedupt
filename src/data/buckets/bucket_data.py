@@ -6,6 +6,7 @@ from typing import List, Optional
 from data.stack_loader import (
     JsonStackLoader,
     JsonStackLoaderForCpp,
+    JsonStackLoaderForCppMulti,
     JsonStackLoaderJavaMulti,
     StackLoader,
 )
@@ -105,6 +106,8 @@ class OtherBucketData(BucketData):
             return JsonStackLoaderJavaMulti(self.reports_path)
         if self.lang == "cpp":
             return JsonStackLoaderJavaMulti(self.reports_path)
+        if self.lang == "cpp_pretrain":
+            return JsonStackLoaderForCppMulti(self.reports_path)
 
         return JsonStackLoader(self.reports_path)
 

@@ -57,7 +57,7 @@ class PairStackBasedSimModel(SimIssueModel):
     def predict(
         self, events: Iterable[StackAdditionState]
     ) -> Iterable[Tuple[int, int, Dict[int, float]]]:
-        for i, event in enumerate(events):
+        for i, event in tqdm(enumerate(events), desc="Predicting"):
             pred_issues, _ = self.predict_all(event.st_id, event.issues)
             yield event.st_id, event.is_id, pred_issues
 

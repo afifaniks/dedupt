@@ -196,7 +196,7 @@ class JsonStackLoaderJavaMulti(StackLoader):
             self.reports[st_id] = stacks
 
     def name(self) -> str:
-        return "json_loader_multi"
+        return "Java json_loader_multi"
 
     def __call__(self, id: int) -> Stack:
         return self.reports[id]
@@ -205,7 +205,7 @@ class JsonStackLoaderJavaMulti(StackLoader):
 class JsonStackLoaderForCppMulti(StackLoader):
     def __init__(self, reports_path: str, include_file_path: bool = False):
         print(
-            "Selected StackLoader for C++ Pretrain\nFile path inclusion:",
+            "Selected Multi StackLoader for C++\nFile path inclusion:",
             include_file_path,
         )
         self.reports_path = reports_path
@@ -241,14 +241,12 @@ class JsonStackLoaderForCppMulti(StackLoader):
 
                         frames.append(normalized_frame)
 
-                stacks.append(
-                    Stack(st_id, report["creation_ts"], exception, frames)
-                )
+                stacks.append(Stack(st_id, report["creation_ts"], exception, frames))
 
             self.reports[st_id] = stacks
 
     def name(self) -> str:
-        return "json_loader"
+        return "CPP json_loader_multi"
 
     def __call__(self, id: int) -> Stack:
         return self.reports[id]

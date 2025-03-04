@@ -41,11 +41,17 @@ def main():
     parser.add_argument("--data_path", type=str, help="Path to file with reports")
     parser.add_argument("--bucket_name", type=str, help="Bucket name of reports")
     parser.add_argument(
-        "--encoder_path", type=str, help="Path to the trained SBERT encoder"
+        "--encoder_path",
+        type=str,
+        default=None,
+        help="Path to the trained SBERT encoder",
     )
     parser.add_argument("--lang", type=str, help="java/cpp")
     parser.add_argument(
         "--multi_stack", action="store_true", help="Enable multi stack status"
+    )
+    parser.add_argument(
+        "--skip_training", action="store_true", help="Skip training of the model"
     )
     parser.add_argument(
         "--loss", type=str, default="ranknet", help="Loss function for neural methods"
@@ -56,8 +62,19 @@ def main():
 
     start = time()
 
+    warmup_days = 350
+    test_days = 700
+    val_days = 140
+    train_days = 3850
+
     bucket_netbeans = OtherBucketData(
-        args.bucket_name, args.data_path, 3850, 700, 350, 140, lang=args.lang
+        args.bucket_name,
+        args.data_path,
+        train_days,
+        test_days,
+        warmup_days,
+        val_days,
+        lang=args.lang,
     )
 
     if args.method == "s3m" or args.method == "transformer":
@@ -71,6 +88,7 @@ def main():
             lang=args.lang,
             multi_stack=args.multi_stack,
             encoder_path=args.encoder_path,
+            skip_training=args.skip_training,
         )
     else:
         if args.method == "durfex":

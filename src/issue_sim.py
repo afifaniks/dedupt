@@ -75,6 +75,7 @@ def neural_issues(
     lang: str = "",
     multi_stack: bool = False,
     encoder_path: str = None,
+    skip_training: bool = False,
 ):
     set_seed(random_seed)
     print("Dataset:", bucket_data.name)
@@ -106,7 +107,7 @@ def neural_issues(
         language=lang,
         multi_stack=multi_stack,
         bucket_name=bucket_data.name,
-        max_frames=10,
+        max_frames=50,
         encoder_path=encoder_path,
     )
     print("Model")
@@ -124,7 +125,7 @@ def neural_issues(
         period=10000,
         selection_from_event_num=4,
         writer=None,
-        skip_training=False,
+        skip_training=skip_training,
     )
 
     ps_model = PairStackBasedSimModel(model, MaxIssueScorer())

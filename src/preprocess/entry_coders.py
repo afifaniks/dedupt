@@ -39,6 +39,7 @@ class Stack2Seq(Entry2Seq):
 
         if stack.clazz:
             seq.append(str(stack.clazz[0]).lower())
+            # seq.append("EXC###" + str(stack.clazz[0]))
 
         return seq
 
@@ -64,6 +65,7 @@ class Stack2SeqMultiStack(Entry2Seq):
             seq = [s if self.cased else s.lower() for s in seq]
             if stack.clazz:
                 seq.append(str(stack.clazz[0]).lower())
+                # seq.append("EXC###" + str(stack.clazz[0]))
             seqs.append(seq)
 
         return seqs

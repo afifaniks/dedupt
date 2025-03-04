@@ -25,15 +25,53 @@ class CppStackFormatter(StackFormatter):
     def format(self, stack) -> str:
         # Remove duplicate frames
         stack = list(dict.fromkeys(stack))
-        stack = [frame for frame in stack if frame.lower() != "none"]
+        stack = [frame.lower() for frame in stack if frame.lower() != "none"]
         if self.max_num_frames > 0:
             if self.from_top:
                 stack = stack[: self.max_num_frames]
             else:
                 stack = stack[-self.max_num_frames :]
 
-        stack = "\n".join([f"{i+1}: {frame}" for i, frame in enumerate(stack)]).replace(
-            "_", " "
+        stack = [
+            re.sub(r"^_+gi_+", "", stack) for stack in stack
+        ]  # Remove __GI__ if at the start
+        stack = (
+            "\n".join([f"{i+1}: {frame}" for i, frame in enumerate(stack)])
+            .replace("_", " ")
+            .lower()
+        )
+        stack = re.sub(r" +", " ", stack)
+
+        return stack
+
+    def name(self) -> str:
+        return "cpp"
+
+
+class CppStackFormatterPretrain(StackFormatter):
+    def __init__(self, from_top: bool, max_num_frames: int) -> None:
+        super().__init__(from_top, max_num_frames)
+        print("Using CppStackFormatter Pretrain")
+
+    def format(self, stack) -> str:
+        # Convert a list of list of strings to a list of strings
+        stack = [item for sublist in stack for item in sublist]
+        # Remove duplicate frames
+        stack = list(dict.fromkeys(stack))
+        stack = [frame.lower() for frame in stack if frame.lower() != "none"]
+        if self.max_num_frames > 0:
+            if self.from_top:
+                stack = stack[: self.max_num_frames]
+            else:
+                stack = stack[-self.max_num_frames :]
+
+        stack = [
+            re.sub(r"^_+gi_+", "", stack) for stack in stack
+        ]  # Remove __GI__ if at the start
+        stack = (
+            "\n".join([f"{i+1}: {frame}" for i, frame in enumerate(stack)])
+            .replace("_", " ")
+            .lower()
         )
         stack = re.sub(r" +", " ", stack)
 
@@ -56,12 +94,16 @@ class JavaStackFormatter(StackFormatter):
                 stack = stack[: self.max_num_frames]
             else:
                 stack = stack[-self.max_num_frames :]
-        return "\n".join(
-            [
-                f"{i+1}: {frame}".replace(".", " ").strip()
-                for i, frame in enumerate(stack)
-            ]
-        ).strip()
+        return (
+            "\n".join(
+                [
+                    f"{i+1}: {frame}".replace(".", " ").strip()
+                    for i, frame in enumerate(stack)
+                ]
+            )
+            .lower()
+            .strip()
+        )
 
     def name(self) -> str:
         return "java"
@@ -89,19 +131,14 @@ class PretrainStackFormatter(StackFormatter):
             else:
                 stack = stack[-self.max_num_frames :]
 
-        exception_flag = False
         if stack[-1].startswith("EXC"):
-            stack[-1] = stack[-1].replace("EXC", "")
-            exception_flag = True
-
-        stack = [self._split_camel_mountain_case(frame) for frame in stack]
-
-        if exception_flag:
-            exception = stack[-1]
-            stack = [frame if len(frame) > 5 else frame for frame in stack[:-1]]
+            exception = stack[-1].replace("EXC", "")
+            stack = [frame for frame in stack[:-1]]
             stack.append(exception)
         else:
-            stack = [frame if len(frame) > 5 else frame for frame in stack]
+            stack = [frame for frame in stack]
+
+        stack = [self._split_camel_mountain_case(frame) for frame in stack]
 
         return "\n".join(
             [f"{i+1}: {' '.join(frame).lower()}" for i, frame in enumerate(stack)]
@@ -116,9 +153,11 @@ def get_formatter(name: str, num_frames: int) -> StackFormatter:
     print("Selected formatter:", name, "num_frames:", num_frames)
     if name == "cpp":
         return CppStackFormatter(False, num_frames)
+    elif name == "cpp_pretrain":
+        return CppStackFormatterPretrain(False, num_frames)
     elif name == "java":
         return JavaStackFormatter(False, num_frames)
-    elif name == "pretrain":
+    elif name == "java_pretrain":
         return PretrainStackFormatter(False, num_frames)
     else:
         raise ValueError(f"Unknown formatter name: {name}")

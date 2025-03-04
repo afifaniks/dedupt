@@ -102,10 +102,10 @@ class OtherBucketData(BucketData):
         return self.actions
 
     def stack_loader(self, multi_stack: bool = False) -> StackLoader:
-        if multi_stack:
+        if multi_stack and self.lang == "java":
             return JsonStackLoaderJavaMulti(self.reports_path)
         if self.lang == "cpp":
-            return JsonStackLoaderJavaMulti(self.reports_path)
+            return JsonStackLoaderForCpp(self.reports_path)
         if self.lang == "cpp_pretrain":
             return JsonStackLoaderForCppMulti(self.reports_path)
 

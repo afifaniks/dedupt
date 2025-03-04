@@ -110,6 +110,9 @@ class JsonStackLoaderForCpp(StackLoader):
                     # Normalize the function name
                     function_name = function_name.lower()
                     function_name = re.sub(
+                        r":", "_", function_name
+                    )  # Remove leading underscores
+                    function_name = re.sub(
                         r"^_+gi_+", "", function_name
                     )  # Remove __GI__ if at the start
                     function_name = re.sub(

@@ -33,7 +33,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
 
 plm_key = "BAAI/bge-base-en"
-model = SentenceTransformer(plm_key)
+model = SentenceTransformer(plm_key, trust_remote_code=True)
 print(f"Model sequence length: {model.max_seq_length}")
 
 # model.max_seq_length = 2048
@@ -44,27 +44,39 @@ print(f"Model size: {torch.cuda.memory_allocated() / 1024 ** 3:.2f} GB")
 dataset_paths = {
     "eclipse": "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/eclipse_2018/eclipse_stacktraces.json",
     "netbeans": "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/netbeans_2016/netbeans_stacktraces.json",
+    "gnome": "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/gnome_2011/gnome_stacktraces_filtered_98_1_2.json",
+    "ubuntu": "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/campbell_dataset/campbell_stacktraces.json",
 }
-bucket_name = "netbeans"
+
+language_map = {
+    "netbeans": "java",
+    "eclipse": "java",
+    "gnome": "cpp_pretrain",
+    "ubuntu": "cpp",
+}
+
+bucket_name = "gnome"
 dataset_json = dataset_paths[bucket_name]
-language = "java"
+language = language_map[bucket_name]
 generate_dataset = True
 batch_size = 16
 eval_size = 300
-max_num_frames = 10
+max_num_frames = 100
 stack_formatter = get_formatter(language, max_num_frames)
-num_train_pairs = 7
+num_train_pairs = 1
 num_test_pairs = 1
 trim_length = 0
 frame_freq = {}
 test_only = False
 warmup_days = 350
-train_days = 3850
 test_days = 700
 val_days = 140
+train_days = 3850
 plm_key_norm = plm_key.replace("/", "_").strip().lower()
-dataset_key = f"{bucket_name}_pretrain_{max_num_frames}frames_{num_train_pairs}train_{trim_length}trim"
-run_name = f"{plm_key_norm}_{bucket_name}_{max_num_frames}frames_{num_train_pairs}train_{trim_length}trim"
+dataset_key = f"{bucket_name}_pretrain_dataset_{train_days}_traindays"
+run_name = f"{plm_key_norm}_{bucket_name}_{max_num_frames}frames_{num_train_pairs}train_{trim_length}trim_{train_days}_traindays"
+model_dir = "/work/disa_lab/afif/projects/deduplication/trained_embedding_models"
+datasets_dir = "/work/disa_lab/afif/projects/deduplication/datasets"
 
 config_to_write = {
     "dataset_key": dataset_key,
@@ -86,6 +98,7 @@ config_to_write = {
     "frame_freq": frame_freq,
     "test_only": test_only,
     "trim_length": trim_length,
+    "model_save_path": f"{model_dir}/{run_name}/final",
 }
 
 print("Configurations:\n", json.dumps(config_to_write, indent=2))
@@ -141,11 +154,20 @@ def generate_dataset_for_train_test(
 
     data_gen.reset()
 
-    stack2seq = Stack2Seq(cased=False, trim_len=trim_length, sep=".")
-
-    coder = SeqCoder(
-        stack_loader, stack2seq, SimpleTokenizer(), min_freq=0, max_len=None
-    )
+    stack2seq = None
+    coder = None
+    if bucket_name == "gnome":
+        stack2seq = Stack2SeqMultiStack(
+            cased=False, trim_len=trim_length, sep=".", multi_stack=True
+        )
+        coder = SeqCoderMulti(
+            stack_loader, stack2seq, SimpleTokenizer(), min_freq=0, max_len=None
+        )
+    else:
+        stack2seq = Stack2Seq(cased=False, trim_len=trim_length, sep=".")
+        coder = SeqCoder(
+            stack_loader, stack2seq, SimpleTokenizer(), min_freq=0, max_len=None
+        )
 
     # coder.fit(unsup_stacks)
 
@@ -154,7 +176,7 @@ def generate_dataset_for_train_test(
 
     print("Generate the dataset...")
     if not test_only:
-        for i, event in tqdm(enumerate(data_gen.train()), desc="Step"):
+        for i, event in tqdm(enumerate(data_gen.train()), desc="Generating train data"):
             similar_stack_ids, dissimilar_stack_ids = triplet_selector_train(event)
             for similar_stack_id, dissimilar_stack_id in zip(
                 similar_stack_ids, dissimilar_stack_ids
@@ -168,7 +190,7 @@ def generate_dataset_for_train_test(
                     )
                 )
 
-    for i, event in tqdm(enumerate(data_gen.test()), desc="Step"):
+    for i, event in tqdm(enumerate(data_gen.test()), desc="Generating test data"):
         similar_stack_ids, dissimilar_stack_ids = triplet_selector_eval(event)
         for similar_stack_id, dissimilar_stack_id in zip(
             similar_stack_ids, dissimilar_stack_ids
@@ -177,15 +199,18 @@ def generate_dataset_for_train_test(
                 get_data_row(coder, event, similar_stack_id, dissimilar_stack_id)
             )
 
+    print(
+        "Stack trace loaded for training and testing. Train:",
+        len(train_data),
+        "Test:",
+        len(test_data),
+    )
     return train_data, test_data
 
 
 if generate_dataset:
-    all_train = []
-    all_test = []
-
     # Load from netbeans bucket
-    train_stacks, test_stacks = generate_dataset_for_train_test(
+    all_train, all_test = generate_dataset_for_train_test(
         bucket_name,
         dataset_json,
         num_train_pairs,
@@ -195,20 +220,26 @@ if generate_dataset:
     )
 
     if not test_only:
-        all_train.extend(train_stacks)
+        # all_train.extend(train_stacks)
         train_dataset = Dataset.from_list(all_train)
-        train_dataset.save_to_disk(f"datasets/{dataset_key}_train")
+        train_dataset.save_to_disk(f"{datasets_dir}/{dataset_key}_train")
 
-    all_test.extend(test_stacks)
+    # all_test.extend(test_stacks)
     test_dataset = Dataset.from_list(all_test)
-    test_dataset.save_to_disk(f"datasets/{dataset_key}_eval")
+    test_dataset.save_to_disk(f"{datasets_dir}/{dataset_key}_eval")
 
+    # Delete lists to free up memory
+    del all_train
+    del all_test
 
+# exit()
 print("Load the preprocessed dataset")
-test_dataset = Dataset.load_from_disk(f"datasets/{dataset_key}_eval")
+test_dataset = Dataset.load_from_disk(f"{datasets_dir}/{dataset_key}_eval")
+
+stack_formatter.format(test_dataset[0]["anchor"])
 
 print("Before formatting", test_dataset[0])
-test_dataset = test_dataset.map(format_data_row)
+test_dataset = test_dataset.map(format_data_row, num_proc=20)
 print("After formatting", test_dataset[0])
 eval_dataset = test_dataset.select(range(eval_size))
 test_dataset = test_dataset.shuffle(seed=42)
@@ -265,15 +296,15 @@ config_to_write["initial_triplet_eval_result"] = result
 if test_only:
     exit()
 
-train_dataset = Dataset.load_from_disk(f"datasets/{dataset_key}_train")
+train_dataset = Dataset.load_from_disk(f"{datasets_dir}/{dataset_key}_train")
 train_dataset = train_dataset.shuffle(seed=42)
-train_dataset = train_dataset.map(format_data_row)
+train_dataset = train_dataset.map(format_data_row, num_proc=20)
 print("Dataset Sizes - Train:", len(train_dataset), "Test:", len(test_dataset))
 
 # 5. (Optional) Specify training arguments
 args = SentenceTransformerTrainingArguments(
     # Required parameter:
-    output_dir=f"models/{run_name}",
+    output_dir=f"{model_dir}/{run_name}",
     # Optional training parameters:
     num_train_epochs=2,
     per_device_train_batch_size=batch_size,
@@ -332,10 +363,9 @@ print("Final embedding test result: ", res_embedding)
 
 config_to_write["final_embedding_eval_result"] = res_embedding
 config_to_write["final_triplet_eval_result"] = result
-config_to_write["model_save_path"] = f"models/{run_name}/final"
 
 # 8. Save the trained model
-model.save_pretrained(f"models/{run_name}/final")
+model.save_pretrained(f"{config_to_write['model_save_path']}/final")
 
 json.dump(
     config_to_write,

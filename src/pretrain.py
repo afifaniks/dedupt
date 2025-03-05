@@ -5,15 +5,11 @@ import time
 from collections import Counter
 
 import torch
-from sentence_transformers import (
-    SentenceTransformer,
-    SentenceTransformerTrainer,
-    SentenceTransformerTrainingArguments,
-)
-from sentence_transformers.evaluation import (
-    EmbeddingSimilarityEvaluator,
-    TripletEvaluator,
-)
+from sentence_transformers import (SentenceTransformer,
+                                   SentenceTransformerTrainer,
+                                   SentenceTransformerTrainingArguments)
+from sentence_transformers.evaluation import (EmbeddingSimilarityEvaluator,
+                                              TripletEvaluator)
 from sentence_transformers.losses import MultipleNegativesRankingLoss
 from sentence_transformers.training_args import BatchSamplers
 from tqdm import tqdm
@@ -157,9 +153,7 @@ def generate_dataset_for_train_test(
     stack2seq = None
     coder = None
     if bucket_name == "gnome":
-        stack2seq = Stack2SeqMultiStack(
-            cased=False, trim_len=trim_length, sep=".", multi_stack=True
-        )
+        stack2seq = Stack2SeqMultiStack(cased=False, trim_len=trim_length, sep=".")
         coder = SeqCoderMulti(
             stack_loader, stack2seq, SimpleTokenizer(), min_freq=0, max_len=None
         )
@@ -365,7 +359,7 @@ config_to_write["final_embedding_eval_result"] = res_embedding
 config_to_write["final_triplet_eval_result"] = result
 
 # 8. Save the trained model
-model.save_pretrained(f"{config_to_write['model_save_path']}/final")
+model.save_pretrained(f"{config_to_write['model_save_path']}")
 
 json.dump(
     config_to_write,

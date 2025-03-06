@@ -8,7 +8,8 @@ from data.buckets.issues_data import BucketDataset
 from evaluation.issue_sim import paper_metrics_iter
 from methods.classic.hyperopt import PairStackBasedIssueHyperoptModel
 from methods.neural.train_issue_sim import train_issue_model
-from methods.pair_stack_issue_model import MaxIssueScorer, PairStackBasedSimModel
+from methods.pair_stack_issue_model import (MaxIssueScorer,
+                                            PairStackBasedSimModel)
 from models_factory import create_classic_model, create_neural_model
 from utils import random_seed, set_seed
 
@@ -76,6 +77,7 @@ def neural_issues(
     multi_stack: bool = False,
     encoder_path: str = None,
     skip_training: bool = False,
+    max_frames: int = -1,
 ):
     set_seed(random_seed)
     print("Dataset:", bucket_data.name)
@@ -107,7 +109,7 @@ def neural_issues(
         language=lang,
         multi_stack=multi_stack,
         bucket_name=bucket_data.name,
-        max_frames=50,
+        max_frames=max_frames,
         encoder_path=encoder_path,
     )
     print("Model")

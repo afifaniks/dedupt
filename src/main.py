@@ -56,6 +56,13 @@ def main():
     parser.add_argument(
         "--loss", type=str, default="ranknet", help="Loss function for neural methods"
     )
+    parser.add_argument(
+        "--max_frames",
+        type=int,
+        default=-1,
+        required=False,
+        help="Maximum frames to be considered",
+    )
     args = parser.parse_args()
 
     print("Arguments:", args)
@@ -66,6 +73,18 @@ def main():
     test_days = 700
     val_days = 140
     train_days = 3850
+
+    default_frames = {
+        "gnome": 100,
+        "netbeans": 10,
+        "eclipse": 10,
+        "ubuntu": 50,
+    }
+
+    max_frames = args.max_frames if args.max_frames > 0 else None
+    if not max_frames:
+        max_frames = default_frames.get(args.bucket_name, 10)
+    print("Max frames:", max_frames)
 
     bucket_netbeans = OtherBucketData(
         args.bucket_name,
@@ -89,6 +108,7 @@ def main():
             multi_stack=args.multi_stack,
             encoder_path=args.encoder_path,
             skip_training=args.skip_training,
+            max_frames=max_frames,
         )
     else:
         if args.method == "durfex":

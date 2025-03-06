@@ -390,3 +390,64 @@ class SiamSentTransformerModelMultiStackMultiHead(NeuralModel):
             + list(self.attention.parameters())
             + self.classifier.opt_params()
         )
+
+
+class SiamSentTransformerModelMultiStackMeanAgg(NeuralModel):
+    def __init__(self, encoder, hidden_dim=256, **kwargs):
+        super(SiamSentTransformerModelMultiStackMeanAgg, self).__init__()
+        self.encoder = encoder
+        self.hidden_dim = hidden_dim
+        # self.fc = nn.Linear(self.encoder.out_dim(), self.hidden_dim)
+        self.classifier = StackClassifier(input_dim=self.encoder.out_dim(), **kwargs)
+        self.cache = {}
+        print("Current model name:", self.name())
+
+    def fit(
+        self,
+        sim_train_data: List[Tuple[int, int, int]] = None,
+        unsup_data: Iterable[int] = None,
+    ):
+        pass
+
+    def get_agg(self, stack_id):
+        if self.training:
+            self.cache = {}
+            return self.encoder(stack_id)
+        else:
+            if stack_id not in self.cache:
+                self.cache[stack_id] = self.encoder(stack_id)
+            return self.cache[stack_id]
+
+    def aggregate_embeddings(self, stack_id):
+        embeddings = self.encoder.forward(stack_id)
+        return embeddings  # torch.mean(embeddings, dim=0)
+
+    def forward(self, stack_ids1, stack_ids2):
+        agg_embedding1 = self.aggregate_embeddings(stack_ids1)
+        agg_embedding2 = self.aggregate_embeddings(stack_ids2)
+
+        mean_agg_embedding1 = torch.mean(agg_embedding1, dim=0)
+        mean_agg_embedding2 = torch.mean(agg_embedding2, dim=0)
+
+        return self.classifier(mean_agg_embedding1, mean_agg_embedding2)
+
+    def predict(self, anchor_id, stack_ids):
+        with torch.no_grad():
+            y_pr = []
+            # anchor_embedding = self.aggregate_embeddings(anchor_id)
+            for stack_id in stack_ids:
+                y_pr.append(self.forward(anchor_id, stack_id).cpu().numpy()[1])
+            return y_pr
+
+    def name(self):
+        return self.encoder.name() + "_meanagg_senttrans"
+
+    def train(self, mode=True):
+        super().train(mode)
+
+    def opt_params(self):
+        return (
+            self.encoder.opt_params()
+            + list(self.fc.parameters())
+            + self.classifier.opt_params()
+        )

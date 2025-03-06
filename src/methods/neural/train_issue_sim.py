@@ -16,14 +16,11 @@ from data.buckets.issues_data import BucketDataset, StackAdditionState
 from data.pair_sim_selector import RandomPairSimSelector
 from data.triplet_selector import RandomTripletSelector
 from evaluation.issue_sim import paper_metrics_iter, score_model
-from methods.neural.losses import (
-    LossComputer,
-    PointLossComputer,
-    RanknetLossComputer,
-    TripletLossComputer,
-)
+from methods.neural.losses import (LossComputer, PointLossComputer,
+                                   RanknetLossComputer, TripletLossComputer)
 from methods.neural.neural_base import NeuralModel
-from methods.pair_stack_issue_model import MaxIssueScorer, PairStackBasedSimModel
+from methods.pair_stack_issue_model import (MaxIssueScorer,
+                                            PairStackBasedSimModel)
 
 
 def log_metrics(
@@ -42,8 +39,8 @@ def log_metrics(
         train_loss_value = loss_computer.get_eval_raws(train_sim_pairs_data_for_score)
         test_loss_value = loss_computer.get_eval_raws(test_sim_pairs_data_for_score)
 
-        # sim_stack_model.encoder.clear_cache()
-        # sim_stack_model.encoder.enable_cache = True
+        if "trainable_encoder" in sim_stack_model.encoder.name():
+            sim_stack_model.encoder.enable_cache()
 
         ps_model = PairStackBasedSimModel(sim_stack_model, MaxIssueScorer())
         train_preds = ps_model.predict(train_data_for_score)
@@ -51,8 +48,8 @@ def log_metrics(
         train_score = score_model(train_preds, full=False)
         test_score = score_model(test_preds, full=False)
 
-        # sim_stack_model.encoder.clear_cache()
-        # sim_stack_model.encoder.enable_cache = False
+        if "trainable_encoder" in sim_stack_model.encoder.name():
+            sim_stack_model.encoder.disable_cache()
     print(
         prefix + f"Train loss: {round(train_loss_value, 4)}. "
         f"Test loss: {round(test_loss_value, 4)}. "
@@ -200,6 +197,8 @@ def train_issue_model(
                 dynamic_ncols=False,
                 ascii=True,
             ):
+                # if "trainable_encoder" in sim_stack_model.encoder.name():
+                #     sim_stack_model.encoder.enable_cache()
                 # log_all_data_scores(sim_stack_model, data_gen)
                 sim_stack_model.train(True)
                 loss = loss_computer.get_event(event)
@@ -261,9 +260,8 @@ def train_issue_model(
         )
     )
     # log_metrics_auc(sim_stack_model, data_gen, bucket_data)
-
-    # sim_stack_model.encoder.clear_cache()
-    # sim_stack_model.encoder.enable_cache = True
+    if "trainable_encoder" in sim_stack_model.encoder.name():
+        sim_stack_model.encoder.enable_cache()
     log_all_data_scores(sim_stack_model, data_gen)
 
     if writer:

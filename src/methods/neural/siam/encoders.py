@@ -177,7 +177,7 @@ class TrainableTransformerEncoder(nn.Module):
         model_name: str,
         out_dim: int = 768,
         multi_stack: bool = False,
-        enable_cache: bool = False,
+        enable_caching: bool = False,
     ):
         # super(TransformerEncoder, self).__init__(
         #     f"transformer_{model_name}", None, dim=384, out_dim=out_dim, **kvargs
@@ -190,14 +190,15 @@ class TrainableTransformerEncoder(nn.Module):
         self.output_dim = out_dim
         self.coder = coder
         self.multi_stack = multi_stack
-        self.enable_cache = enable_cache
+        self.cache_enabled = enable_caching
         self.cache = {}
         self._name = (
             model_name.split("/")[-2].strip() if "/" in model_name else model_name
         )
+        self._name = f"{self._name}_trainable_encoder"
 
     def forward(self, stack_id: int) -> torch.Tensor:
-        if self.enable_cache and self.cache.get(stack_id) is not None:
+        if self.cache_enabled and self.cache.get(stack_id) is not None:
             return self.cache[stack_id]
 
         frames = self.coder(stack_id, transformer=True)
@@ -207,7 +208,7 @@ class TrainableTransformerEncoder(nn.Module):
             frames = self.stack_formatter.format(frames)
         emb = self.transformer.encode(frames, convert_to_tensor=True)
 
-        if self.enable_cache:
+        if self.cache_enabled:
             self.cache[stack_id] = emb
 
         return emb
@@ -223,6 +224,86 @@ class TrainableTransformerEncoder(nn.Module):
 
     def clear_cache(self):
         self.cache = {}
+
+    # Make the method deprecated
+    def format_stack(self, stack):
+        warnings.warn(
+            "The 'format_stack' method is deprecated and will be removed",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        # Select last 10 frames
+        stack = list(dict.fromkeys(stack))
+        stack = [frame for frame in stack if frame.lower() != "none"]
+        return "\n".join([f"{i+1}: {frame}" for i, frame in enumerate(stack)])
+
+    # @lru_cache(maxsize=200_000)
+    def forward_all(self, stack_ids: list) -> torch.Tensor:
+        # Process all stack_ids in batch
+        frames_batch = [
+            self.coder(stack_id, transformer=True) for stack_id in stack_ids
+        ]
+
+        # Join frames for each stack_id into a single string
+        sentences = ["\n".join(frames) for frames in frames_batch]
+
+        # Encode the entire batch of sentences at once
+        embeddings = self.transformer.encode(sentences, convert_to_tensor=True)
+
+        return embeddings
+    
+    def enable_cache(self):
+        print("Enabling cache...")
+        self.cache_enabled = True
+    
+    def disable_cache(self):
+        print("Disabling cache...")
+        self.cache_enabled = False
+        print("Clearing cache...")
+        self.clear_cache()
+
+
+class TransformerFrameEncoder:
+    def __init__(
+        self,
+        coder: SeqCoder,
+        stack_formatter: StackFormatter,
+        model_name: str,
+        out_dim: int = 768,
+        multi_stack: bool = False,
+    ):
+        # super(TransformerEncoder, self).__init__(
+        #     f"transformer_{model_name}", None, dim=384, out_dim=out_dim, **kvargs
+        # )
+        super(TransformerEncoder, self).__init__()
+        print(f"Loading transformer model: {model_name}")
+        self.transformer = SentenceTransformer(model_name)
+        print(f"Selected formatter: {stack_formatter.name()}")
+        self.stack_formatter = stack_formatter
+        self.output_dim = out_dim
+        self.coder = coder
+        self.multi_stack = multi_stack
+        self._name = model_name.split("/")[-2].strip()
+
+    @lru_cache(maxsize=200_000)
+    def forward(self, stack_id: int) -> torch.Tensor:
+        frames = self.coder(stack_id, transformer=True)
+        if self.multi_stack:
+            frames = [self.stack_formatter.format(frame) for frame in frames]
+        else:
+            frames = self.stack_formatter.format(frames)
+        emb = self.transformer.encode(frames, convert_to_tensor=True)
+
+        return emb
+
+    def opt_params(self) -> list:
+        return list(self.transformer.parameters())
+
+    def out_dim(self) -> int:
+        return self.output_dim
+
+    def name(self) -> str:
+        return self._name
 
     # Make the method deprecated
     def format_stack(self, stack):

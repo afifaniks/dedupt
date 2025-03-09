@@ -112,8 +112,6 @@ def neural_issues(
         max_frames=max_frames,
         encoder_path=encoder_path,
     )
-    print("Model")
-    print(model)
 
     optimizers = [torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=0.0)]
     train_issue_model(

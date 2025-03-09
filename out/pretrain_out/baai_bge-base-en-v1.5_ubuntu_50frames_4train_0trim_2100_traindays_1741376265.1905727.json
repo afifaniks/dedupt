@@ -1,0 +1,60 @@
+{
+  "dataset_key": "ubuntu_pretrain_dataset_2100_traindays",
+  "run_name": "baai_bge-base-en-v1.5_ubuntu_50frames_4train_0trim_2100_traindays",
+  "train_days": 2100,
+  "test_days": 600,
+  "val_days": 140,
+  "warmup_days": 350,
+  "plm_key": "BAAI/bge-base-en-v1.5",
+  "bucket_name": "ubuntu",
+  "dataset_json": "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/campbell_dataset/campbell_stacktraces.json",
+  "language": "cpp",
+  "generate_dataset": true,
+  "batch_size": 16,
+  "eval_size": 200,
+  "max_num_frames": 50,
+  "num_train_pairs": 4,
+  "num_test_pairs": 2,
+  "frame_freq": {},
+  "test_only": false,
+  "trim_length": 0,
+  "model_save_path": "/work/disa_lab/afif/projects/deduplication/trained_embedding_models/baai_bge-base-en-v1.5_ubuntu_50frames_4train_0trim_2100_traindays/final",
+  "initial_embedding_eval_result": {
+    "pearson_cosine": 0.46230254579882724,
+    "spearman_cosine": 0.4464384548363209,
+    "pearson_manhattan": 0.5117738155086042,
+    "spearman_manhattan": 0.4456724387288572,
+    "pearson_euclidean": 0.5104990125782063,
+    "spearman_euclidean": 0.44636444656993446,
+    "pearson_dot": 0.46230250881253054,
+    "spearman_dot": 0.4463761648831945,
+    "pearson_max": 0.5117738155086042,
+    "spearman_max": 0.4464384548363209
+  },
+  "initial_triplet_eval_result": {
+    "all-nli-dev_cosine_accuracy": 0.88,
+    "all-nli-dev_dot_accuracy": 0.12,
+    "all-nli-dev_manhattan_accuracy": 0.875,
+    "all-nli-dev_euclidean_accuracy": 0.88,
+    "all-nli-dev_max_accuracy": 0.88
+  },
+  "final_embedding_eval_result": {
+    "pearson_cosine": 0.8438148923303304,
+    "spearman_cosine": 0.8284739000006968,
+    "pearson_manhattan": 0.7788726105672865,
+    "spearman_manhattan": 0.8278665462487982,
+    "pearson_euclidean": 0.7791983040667086,
+    "spearman_euclidean": 0.8284739000006968,
+    "pearson_dot": 0.8438148814304766,
+    "spearman_dot": 0.8273267164066477,
+    "pearson_max": 0.8438148923303304,
+    "spearman_max": 0.8284739000006968
+  },
+  "final_triplet_eval_result": {
+    "all-nli-test_cosine_accuracy": 0.9596774193548387,
+    "all-nli-test_dot_accuracy": 0.04032258064516129,
+    "all-nli-test_manhattan_accuracy": 0.9717741935483871,
+    "all-nli-test_euclidean_accuracy": 0.9596774193548387,
+    "all-nli-test_max_accuracy": 0.9717741935483871
+  }
+}

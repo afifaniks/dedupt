@@ -1,0 +1,60 @@
+{
+  "dataset_key": "netbeans_pretrain_10_class_new_triplet",
+  "run_name": "bge-base-netbeans_10_class_new_triplet",
+  "train_days": 3850,
+  "test_days": 700,
+  "val_days": 140,
+  "warmup_days": 350,
+  "plm_key": "BAAI/bge-base-en",
+  "bucket_name": "netbeans",
+  "dataset_json": "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/netbeans_2016/netbeans_stacktraces.json",
+  "language": "java",
+  "generate_dataset": true,
+  "batch_size": 16,
+  "eval_size": 300,
+  "max_num_frames": 10,
+  "num_train_pairs": 5,
+  "num_test_pairs": 1,
+  "frame_freq": {},
+  "test_only": false,
+  "trim_length": 0,
+  "initial_embedding_eval_result": {
+    "pearson_cosine": 0.7599406461904008,
+    "spearman_cosine": 0.7561758495975222,
+    "pearson_manhattan": 0.7095739478241234,
+    "spearman_manhattan": 0.7541964111486826,
+    "pearson_euclidean": 0.7114626633863346,
+    "spearman_euclidean": 0.7558132062317904,
+    "pearson_dot": 0.7599405509787076,
+    "spearman_dot": 0.7557723008150546,
+    "pearson_max": 0.7599406461904008,
+    "spearman_max": 0.7561758495975222
+  },
+  "initial_triplet_eval_result": {
+    "all-nli-dev_cosine_accuracy": 0.9466666666666667,
+    "all-nli-dev_dot_accuracy": 0.05333333333333334,
+    "all-nli-dev_manhattan_accuracy": 0.94,
+    "all-nli-dev_euclidean_accuracy": 0.9466666666666667,
+    "all-nli-dev_max_accuracy": 0.9466666666666667
+  },
+  "final_embedding_eval_result": {
+    "pearson_cosine": 0.8954099319546514,
+    "spearman_cosine": 0.8475822946774207,
+    "pearson_manhattan": 0.8348668394093501,
+    "spearman_manhattan": 0.8459841604847198,
+    "pearson_euclidean": 0.835348057300817,
+    "spearman_euclidean": 0.8475818824588763,
+    "pearson_dot": 0.895409944852609,
+    "spearman_dot": 0.8474094512011574,
+    "pearson_max": 0.895409944852609,
+    "spearman_max": 0.8475822946774207
+  },
+  "final_triplet_eval_result": {
+    "all-nli-test_cosine_accuracy": 0.9780281690140845,
+    "all-nli-test_dot_accuracy": 0.021971830985915493,
+    "all-nli-test_manhattan_accuracy": 0.9774647887323944,
+    "all-nli-test_euclidean_accuracy": 0.9780281690140845,
+    "all-nli-test_max_accuracy": 0.9780281690140845
+  },
+  "model_save_path": "models/bge-base-netbeans_10_class_new_triplet/final"
+}

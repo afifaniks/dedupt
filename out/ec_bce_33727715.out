@@ -1,0 +1,262 @@
+Device: cuda
+Dataset: eclipse
+Method: transformer
+Trim:  2
+train_days 3850 test_days 700 warmup_days 350 val_days 140 loss_name ranknet
+Stack loader:  json_loader_multi
+Multi stack status: True
+Selected formatter: java num_frames: 10
+Loading transformer model: models/bge-base-eclipse_10_class/final
+Selected formatter: java
+Current model name: models_bge-base-eclipse_10_class_final_senttrans
+Choosen model: SiamSentTransformerModelMultiStack(
+  (classifier): StackClassifier(
+    (classifier): Sequential(
+      (0): Dropout(p=0.1, inplace=False)
+      (1): Linear(in_features=6144, out_features=3072, bias=True)
+      (2): ReLU()
+      (3): Linear(in_features=3072, out_features=1, bias=True)
+    )
+  )
+)
+Model
+SiamSentTransformerModelMultiStack(
+  (classifier): StackClassifier(
+    (classifier): Sequential(
+      (0): Dropout(p=0.1, inplace=False)
+      (1): Linear(in_features=6144, out_features=3072, bias=True)
+      (2): ReLU()
+      (3): Linear(in_features=3072, out_features=1, bias=True)
+    )
+  )
+)
+Data sample: <data.buckets.event_state_model.StackAdditionState object at 0x7f4ddea540a0>
+Time to score validation data: 7.152557373046875e-07
+Total epochs: 4
+Skipping training
+Loading best model...
+Test
+Calculating metrics...
+Processed 10 predictions
+Processed 20 predictions
+Processed 30 predictions
+Processed 40 predictions
+Processed 50 predictions
+Processed 60 predictions
+Processed 70 predictions
+Processed 80 predictions
+Processed 90 predictions
+Processed 100 predictions
+Processed 110 predictions
+Processed 120 predictions
+Processed 130 predictions
+Processed 140 predictions
+Processed 150 predictions
+Processed 160 predictions
+Processed 170 predictions
+Processed 180 predictions
+Processed 190 predictions
+Processed 200 predictions
+Processed 210 predictions
+Processed 220 predictions
+Processed 230 predictions
+Processed 240 predictions
+Processed 250 predictions
+Processed 260 predictions
+Processed 270 predictions
+Processed 280 predictions
+Processed 290 predictions
+Processed 300 predictions
+Processed 310 predictions
+Processed 320 predictions
+Processed 330 predictions
+Processed 340 predictions
+Processed 350 predictions
+Processed 360 predictions
+Processed 370 predictions
+Processed 380 predictions
+Processed 390 predictions
+Processed 400 predictions
+Processed 410 predictions
+Processed 420 predictions
+Processed 430 predictions
+Processed 440 predictions
+Processed 450 predictions
+Processed 460 predictions
+Processed 470 predictions
+Processed 480 predictions
+Processed 490 predictions
+Processed 500 predictions
+Processed 510 predictions
+Processed 520 predictions
+Processed 530 predictions
+Processed 540 predictions
+Processed 550 predictions
+Processed 560 predictions
+Processed 570 predictions
+Processed 580 predictions
+Processed 590 predictions
+Processed 600 predictions
+Processed 610 predictions
+Processed 620 predictions
+Processed 630 predictions
+Processed 640 predictions
+Processed 650 predictions
+Processed 660 predictions
+Processed 670 predictions
+Processed 680 predictions
+Processed 690 predictions
+Processed 700 predictions
+Processed 710 predictions
+Processed 720 predictions
+Processed 730 predictions
+Processed 740 predictions
+Processed 750 predictions
+Processed 760 predictions
+Processed 770 predictions
+Processed 780 predictions
+Processed 790 predictions
+Processed 800 predictions
+Processed 810 predictions
+Processed 820 predictions
+Processed 830 predictions
+Processed 840 predictions
+Processed 850 predictions
+Processed 860 predictions
+Processed 870 predictions
+Processed 880 predictions
+Processed 890 predictions
+Processed 900 predictions
+Processed 910 predictions
+Processed 920 predictions
+Processed 930 predictions
+Processed 940 predictions
+Processed 950 predictions
+Processed 960 predictions
+Processed 970 predictions
+Processed 980 predictions
+Processed 990 predictions
+Processed 1000 predictions
+Processed 1010 predictions
+Processed 1020 predictions
+Processed 1030 predictions
+Processed 1040 predictions
+Processed 1050 predictions
+Processed 1060 predictions
+Processed 1070 predictions
+Processed 1080 predictions
+Processed 1090 predictions
+Processed 1100 predictions
+Processed 1110 predictions
+Processed 1120 predictions
+Processed 1130 predictions
+Processed 1140 predictions
+Processed 1150 predictions
+Processed 1160 predictions
+Processed 1170 predictions
+Processed 1180 predictions
+Processed 1190 predictions
+Processed 1200 predictions
+Processed 1210 predictions
+Processed 1220 predictions
+Processed 1230 predictions
+Processed 1240 predictions
+Processed 1250 predictions
+Processed 1260 predictions
+Processed 1270 predictions
+Processed 1280 predictions
+Processed 1290 predictions
+Processed 1300 predictions
+Processed 1310 predictions
+Processed 1320 predictions
+Processed 1330 predictions
+Processed 1340 predictions
+Processed 1350 predictions
+Processed 1360 predictions
+Processed 1370 predictions
+Processed 1380 predictions
+Processed 1390 predictions
+Processed 1400 predictions
+Processed 1410 predictions
+Processed 1420 predictions
+Processed 1430 predictions
+Processed 1440 predictions
+Processed 1450 predictions
+Processed 1460 predictions
+Processed 1470 predictions
+Processed 1480 predictions
+Processed 1490 predictions
+Processed 1500 predictions
+Processed 1510 predictions
+Processed 1520 predictions
+Processed 1530 predictions
+Processed 1540 predictions
+Processed 1550 predictions
+Processed 1560 predictions
+Processed 1570 predictions
+Processed 1580 predictions
+Processed 1590 predictions
+Processed 1600 predictions
+Processed 1610 predictions
+Processed 1620 predictions
+Processed 1630 predictions
+Processed 1640 predictions
+Processed 1650 predictions
+Processed 1660 predictions
+Processed 1670 predictions
+Processed 1680 predictions
+Processed 1690 predictions
+Processed 1700 predictions
+Processed 1710 predictions
+Processed 1720 predictions
+Processed 1730 predictions
+Processed 1740 predictions
+Processed 1750 predictions
+Processed 1760 predictions
+Processed 1770 predictions
+Processed 1780 predictions
+Processed 1790 predictions
+Processed 1800 predictions
+Processed 1810 predictions
+Processed 1820 predictions
+Processed 1830 predictions
+Processed 1840 predictions
+Processed 1850 predictions
+Processed 1860 predictions
+Processed 1870 predictions
+Processed 1880 predictions
+Processed 1890 predictions
+Processed 1900 predictions
+Processed 1910 predictions
+Processed 1920 predictions
+Processed 1930 predictions
+Processed 1940 predictions
+Processed 1950 predictions
+Processed 1960 predictions
+Processed 1970 predictions
+Processed 1980 predictions
+Processed 1990 predictions
+Processed 2000 predictions
+Processed 2010 predictions
+Processed 2020 predictions
+Processed 2030 predictions
+Processed 2040 predictions
+Processed 2050 predictions
+Processed 2060 predictions
+Processed 2070 predictions
+Processed 2080 predictions
+Processed 2090 predictions
+Processed 2100 predictions
+Processed 2110 predictions
+Processed 2120 predictions
+Processed 2130 predictions
+Processed 2140 predictions
+map: 0.7926294496513118
+auc: 0.7926294496513118
+mrr: (0.7926294496513118, 0.7804031571146683, 0.8063101024722872)
+rr@1: (0.7224112785610112, 0.7092853670393777, 0.7399124939231891)
+rr@5: (0.8804083616917842, 0.8677685950413223, 0.8945065629557608)
+rr@10: (0.9022848808945065, 0.8881866796305299, 0.9183276616431697)
+
+Time to predict 0.21441245079040527
+Time: 4610.669757604599

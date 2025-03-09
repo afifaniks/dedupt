@@ -1,0 +1,60 @@
+{
+  "dataset_key": "eclipse_pretrain_10_class_prev_triplet",
+  "run_name": "bge-base-eclipse_10_class_prev_triplet",
+  "train_days": 3850,
+  "test_days": 700,
+  "val_days": 140,
+  "warmup_days": 350,
+  "plm_key": "BAAI/bge-base-en",
+  "bucket_name": "eclipse",
+  "dataset_json": "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/eclipse_2018/eclipse_stacktraces.json",
+  "language": "java",
+  "generate_dataset": true,
+  "batch_size": 16,
+  "eval_size": 300,
+  "max_num_frames": 10,
+  "num_train_pairs": 5,
+  "num_test_pairs": 1,
+  "frame_freq": {},
+  "test_only": false,
+  "trim_length": 2,
+  "initial_embedding_eval_result": {
+    "pearson_cosine": 0.7772995733326422,
+    "spearman_cosine": 0.7858691861957223,
+    "pearson_manhattan": 0.7671891738161956,
+    "spearman_manhattan": 0.7818180542726683,
+    "pearson_euclidean": 0.7688674510492293,
+    "spearman_euclidean": 0.7829741338087576,
+    "pearson_dot": 0.7772995133667517,
+    "spearman_dot": 0.7822570737380607,
+    "pearson_max": 0.7772995733326422,
+    "spearman_max": 0.7858691861957223
+  },
+  "initial_triplet_eval_result": {
+    "all-nli-dev_cosine_accuracy": 0.9333333333333333,
+    "all-nli-dev_dot_accuracy": 0.06666666666666667,
+    "all-nli-dev_manhattan_accuracy": 0.9333333333333333,
+    "all-nli-dev_euclidean_accuracy": 0.9333333333333333,
+    "all-nli-dev_max_accuracy": 0.9333333333333333
+  },
+  "final_embedding_eval_result": {
+    "pearson_cosine": 0.8763660157972882,
+    "spearman_cosine": 0.8232157763905398,
+    "pearson_manhattan": 0.8334849688970921,
+    "spearman_manhattan": 0.8219813913672097,
+    "pearson_euclidean": 0.8332166528709923,
+    "spearman_euclidean": 0.8232156845336651,
+    "pearson_dot": 0.8763660162851704,
+    "spearman_dot": 0.8218137148854642,
+    "pearson_max": 0.8763660162851704,
+    "spearman_max": 0.8232157763905398
+  },
+  "final_triplet_eval_result": {
+    "all-nli-test_cosine_accuracy": 0.9761789013125911,
+    "all-nli-test_dot_accuracy": 0.02236266407389402,
+    "all-nli-test_manhattan_accuracy": 0.9742343218279047,
+    "all-nli-test_euclidean_accuracy": 0.9761789013125911,
+    "all-nli-test_max_accuracy": 0.9761789013125911
+  },
+  "model_save_path": "models/bge-base-eclipse_10_class_prev_triplet/final"
+}

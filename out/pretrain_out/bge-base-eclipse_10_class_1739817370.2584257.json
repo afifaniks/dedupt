@@ -1,0 +1,55 @@
+{
+  "dataset_key": "eclipse_pretrain_10_class",
+  "run_name": "bge-base-eclipse_10_class",
+  "plm_key": "BAAI/bge-base-en",
+  "bucket_name": "eclipse",
+  "dataset_json": "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/eclipse_2018/eclipse_stacktraces.json",
+  "language": "java",
+  "generate_dataset": true,
+  "batch_size": 16,
+  "eval_size": 300,
+  "max_num_frames": 10,
+  "num_train_pairs": 5,
+  "num_test_pairs": 1,
+  "frame_freq": {},
+  "test_only": false,
+  "trim_length": 2,
+  "initial_embedding_eval_result": {
+    "pearson_cosine": 0.7342086964873676,
+    "spearman_cosine": 0.7494908906522217,
+    "pearson_manhattan": 0.7296160471972427,
+    "spearman_manhattan": 0.7475097217412404,
+    "pearson_euclidean": 0.7312681461929371,
+    "spearman_euclidean": 0.7470475828097156,
+    "pearson_dot": 0.734208719113526,
+    "spearman_dot": 0.7468659961517725,
+    "pearson_max": 0.734208719113526,
+    "spearman_max": 0.7494908906522217
+  },
+  "initial_triplet_eval_result": {
+    "all-nli-dev_cosine_accuracy": 0.9333333333333333,
+    "all-nli-dev_dot_accuracy": 0.06666666666666667,
+    "all-nli-dev_manhattan_accuracy": 0.9333333333333333,
+    "all-nli-dev_euclidean_accuracy": 0.9333333333333333,
+    "all-nli-dev_max_accuracy": 0.9333333333333333
+  },
+  "final_embedding_eval_result": {
+    "pearson_cosine": 0.889191869769832,
+    "spearman_cosine": 0.83225045005547,
+    "pearson_manhattan": 0.8374404126728499,
+    "spearman_manhattan": 0.833117841033273,
+    "pearson_euclidean": 0.8371239018944412,
+    "spearman_euclidean": 0.8322500902961537,
+    "pearson_dot": 0.8891918676524369,
+    "spearman_dot": 0.8307172243458381,
+    "pearson_max": 0.889191869769832,
+    "spearman_max": 0.833117841033273
+  },
+  "final_triplet_eval_result": {
+    "all-nli-test_cosine_accuracy": 0.9822926374650512,
+    "all-nli-test_dot_accuracy": 0.017707362534948742,
+    "all-nli-test_manhattan_accuracy": 0.9818266542404473,
+    "all-nli-test_euclidean_accuracy": 0.9822926374650512,
+    "all-nli-test_max_accuracy": 0.9822926374650512
+  }
+}

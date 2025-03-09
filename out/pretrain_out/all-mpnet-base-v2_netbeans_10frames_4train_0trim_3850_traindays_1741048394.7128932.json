@@ -1,0 +1,60 @@
+{
+  "dataset_key": "netbeans_pretrain_dataset_3850_traindays",
+  "run_name": "all-mpnet-base-v2_netbeans_10frames_4train_0trim_3850_traindays",
+  "train_days": 3850,
+  "test_days": 700,
+  "val_days": 140,
+  "warmup_days": 350,
+  "plm_key": "all-mpnet-base-v2",
+  "bucket_name": "netbeans",
+  "dataset_json": "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/netbeans_2016/netbeans_stacktraces.json",
+  "language": "java",
+  "generate_dataset": true,
+  "batch_size": 16,
+  "eval_size": 300,
+  "max_num_frames": 10,
+  "num_train_pairs": 4,
+  "num_test_pairs": 1,
+  "frame_freq": {},
+  "test_only": false,
+  "trim_length": 0,
+  "initial_embedding_eval_result": {
+    "pearson_cosine": 0.7895435002436939,
+    "spearman_cosine": 0.7913468167406609,
+    "pearson_manhattan": 0.7642734755492808,
+    "spearman_manhattan": 0.7944106634182296,
+    "pearson_euclidean": 0.7618106188571483,
+    "spearman_euclidean": 0.7910226563240741,
+    "pearson_dot": 0.7895434901547091,
+    "spearman_dot": 0.7909786033829213,
+    "pearson_max": 0.7895435002436939,
+    "spearman_max": 0.7944106634182296
+  },
+  "initial_triplet_eval_result": {
+    "all-nli-dev_cosine_accuracy": 0.9766666666666667,
+    "all-nli-dev_dot_accuracy": 0.023333333333333334,
+    "all-nli-dev_manhattan_accuracy": 0.9733333333333334,
+    "all-nli-dev_euclidean_accuracy": 0.9766666666666667,
+    "all-nli-dev_max_accuracy": 0.9766666666666667
+  },
+  "final_embedding_eval_result": {
+    "pearson_cosine": 0.892181188191127,
+    "spearman_cosine": 0.8407416757314586,
+    "pearson_manhattan": 0.8345492650408366,
+    "spearman_manhattan": 0.8410931359128063,
+    "pearson_euclidean": 0.8356875035675214,
+    "spearman_euclidean": 0.8407082314940287,
+    "pearson_dot": 0.892181196193079,
+    "spearman_dot": 0.8407184254912903,
+    "pearson_max": 0.892181196193079,
+    "spearman_max": 0.8410931359128063
+  },
+  "final_triplet_eval_result": {
+    "all-nli-test_cosine_accuracy": 0.9774647887323944,
+    "all-nli-test_dot_accuracy": 0.022535211267605635,
+    "all-nli-test_manhattan_accuracy": 0.9774647887323944,
+    "all-nli-test_euclidean_accuracy": 0.9774647887323944,
+    "all-nli-test_max_accuracy": 0.9774647887323944
+  },
+  "model_save_path": "/work/disa_lab/afif/projects/deduplication/trained_embedding_models/all-mpnet-base-v2_netbeans_10frames_4train_0trim_3850_traindays/final"
+}

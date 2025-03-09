@@ -1,0 +1,72 @@
+{
+  "dataset_key": "ubuntu_pretrain_dataset_2100_traindays",
+  "run_name": "baai_bge-base-en_ubuntu_50frames_5train_0trim_2100_traindays",
+  "train_days": 2100,
+  "test_days": 630,
+  "val_days": 100,
+  "warmup_days": 250,
+  "plm_key": "BAAI/bge-base-en",
+  "bucket_name": "ubuntu",
+  "dataset_json": "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/campbell_dataset/campbell_stacktraces.json",
+  "language": "cpp",
+  "generate_dataset": true,
+  "batch_size": 16,
+  "eval_size": 100,
+  "max_num_frames": 50,
+  "num_train_pairs": 5,
+  "num_test_pairs": 2,
+  "frame_freq": {},
+  "test_only": false,
+  "trim_length": 0,
+  "initial_embedding_eval_result": {
+    "pearson_cosine": 0.4694796146796488,
+    "spearman_cosine": 0.38526897691135764,
+    "pearson_manhattan": 0.4946622072854583,
+    "spearman_manhattan": 0.4022373078039757,
+    "pearson_euclidean": 0.4901491046274322,
+    "spearman_euclidean": 0.3852574157089619,
+    "pearson_dot": 0.4694796948878738,
+    "spearman_dot": 0.38560271311686944,
+    "pearson_max": 0.4946622072854583,
+    "spearman_max": 0.4022373078039757
+  },
+  "initial_triplet_eval_result": {
+    "all-nli-dev_cosine_accuracy": 0.79,
+    "all-nli-dev_dot_accuracy": 0.21,
+    "all-nli-dev_manhattan_accuracy": 0.78,
+    "all-nli-dev_euclidean_accuracy": 0.79,
+    "all-nli-dev_max_accuracy": 0.79
+  },
+  "final_embedding_eval_result": {
+    "pearson_cosine": 0.7846621989059426,
+    "spearman_cosine": 0.7995055060812662,
+    "pearson_manhattan": 0.7049139973432161,
+    "spearman_manhattan": 0.8008912809807679,
+    "pearson_euclidean": 0.7016895839796086,
+    "spearman_euclidean": 0.7995055060812662,
+    "pearson_dot": 0.7846621942599621,
+    "spearman_dot": 0.7994695237907102,
+    "pearson_max": 0.7846621989059426,
+    "spearman_max": 0.8008912809807679
+  },
+  "final_triplet_eval_result": {
+    "all-nli-test_cosine_accuracy": 0.9488188976377953,
+    "all-nli-test_dot_accuracy": 0.045275590551181105,
+    "all-nli-test_manhattan_accuracy": 0.9507874015748031,
+    "all-nli-test_euclidean_accuracy": 0.9488188976377953,
+    "all-nli-test_max_accuracy": 0.9507874015748031
+  },
+  "model_save_path": "/work/disa_lab/afif/projects/deduplication/trained_embedding_models/baai_bge-base-en_ubuntu_50frames_5train_0trim_2100_traindays/final"
+}
+
+// mrr: (0.7825359840086195, 0.7492402411929451, 0.8227322149737409)
+// rr@1: (0.7362204724409449, 0.6811023622047244, 0.7952755905511811)
+// rr@2: (0.7874015748031497, 0.7440944881889764, 0.8464566929133859)
+// rr@3: (0.7913385826771654, 0.7480314960629921, 0.84251968503937)
+// rr@4: (0.8149606299212598, 0.7755905511811023, 0.8622047244094488)
+// rr@5: (0.8385826771653543, 0.8031496062992126, 0.8858267716535433)
+// rr@6: (0.8503937007874016, 0.8031496062992126, 0.8937007874015748)
+// rr@7: (0.8543307086614174, 0.8149606299212598, 0.8937007874015748)
+// rr@8: (0.8582677165354331, 0.8031496062992126, 0.9015748031496063)
+// rr@9: (0.8661417322834646, 0.8228346456692913, 0.9015748031496063)
+// rr@10: (0.8661417322834646, 0.8228346456692913, 0.9015748031496063)

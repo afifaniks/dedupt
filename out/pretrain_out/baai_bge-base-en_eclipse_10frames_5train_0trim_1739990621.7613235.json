@@ -1,0 +1,60 @@
+{
+  "dataset_key": "eclipse_pretrain_dataset",
+  "run_name": "baai_bge-base-en_eclipse_10frames_5train_0trim",
+  "train_days": 3850,
+  "test_days": 700,
+  "val_days": 140,
+  "warmup_days": 350,
+  "plm_key": "BAAI/bge-base-en",
+  "bucket_name": "eclipse",
+  "dataset_json": "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/eclipse_2018/eclipse_stacktraces.json",
+  "language": "java",
+  "generate_dataset": true,
+  "batch_size": 16,
+  "eval_size": 300,
+  "max_num_frames": 10,
+  "num_train_pairs": 5,
+  "num_test_pairs": 1,
+  "frame_freq": {},
+  "test_only": false,
+  "trim_length": 0,
+  "initial_embedding_eval_result": {
+    "pearson_cosine": 0.8484816598515419,
+    "spearman_cosine": 0.8139067438639231,
+    "pearson_manhattan": 0.8100700044369968,
+    "spearman_manhattan": 0.8150489280887846,
+    "pearson_euclidean": 0.8091035386644823,
+    "spearman_euclidean": 0.8110396059564776,
+    "pearson_dot": 0.8484816762637339,
+    "spearman_dot": 0.8101609713094603,
+    "pearson_max": 0.8484816762637339,
+    "spearman_max": 0.8150489280887846
+  },
+  "initial_triplet_eval_result": {
+    "all-nli-dev_cosine_accuracy": 0.96,
+    "all-nli-dev_dot_accuracy": 0.04,
+    "all-nli-dev_manhattan_accuracy": 0.9566666666666667,
+    "all-nli-dev_euclidean_accuracy": 0.96,
+    "all-nli-dev_max_accuracy": 0.96
+  },
+  "final_embedding_eval_result": {
+    "pearson_cosine": 0.8754977269151403,
+    "spearman_cosine": 0.8174249786458702,
+    "pearson_manhattan": 0.8379420839609582,
+    "spearman_manhattan": 0.8165738656334587,
+    "pearson_euclidean": 0.839099115545626,
+    "spearman_euclidean": 0.8174223342039937,
+    "pearson_dot": 0.8754977305566533,
+    "spearman_dot": 0.8161332217759766,
+    "pearson_max": 0.8754977305566533,
+    "spearman_max": 0.8174249786458702
+  },
+  "final_triplet_eval_result": {
+    "all-nli-test_cosine_accuracy": 0.9635391346621293,
+    "all-nli-test_dot_accuracy": 0.03305785123966942,
+    "all-nli-test_manhattan_accuracy": 0.9620807000486145,
+    "all-nli-test_euclidean_accuracy": 0.9635391346621293,
+    "all-nli-test_max_accuracy": 0.9635391346621293
+  },
+  "model_save_path": "models/baai_bge-base-en_eclipse_10frames_5train_0trim/final"
+}

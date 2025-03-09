@@ -1,0 +1,60 @@
+{
+  "dataset_key": "ubuntu_pretrain_dataset_2000_traindays",
+  "run_name": "baai_bge-base-en_ubuntu_50frames_4train_0trim_2000_traindays",
+  "train_days": 2000,
+  "test_days": 630,
+  "val_days": 100,
+  "warmup_days": 350,
+  "plm_key": "BAAI/bge-base-en",
+  "bucket_name": "ubuntu",
+  "dataset_json": "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/campbell_dataset/campbell_stacktraces.json",
+  "language": "cpp",
+  "generate_dataset": true,
+  "batch_size": 16,
+  "eval_size": 100,
+  "max_num_frames": 50,
+  "num_train_pairs": 4,
+  "num_test_pairs": 2,
+  "frame_freq": {},
+  "test_only": false,
+  "trim_length": 0,
+  "initial_embedding_eval_result": {
+    "pearson_cosine": 0.48089733985941047,
+    "spearman_cosine": 0.4074610729352422,
+    "pearson_manhattan": 0.511623904491221,
+    "spearman_manhattan": 0.42960359305675605,
+    "pearson_euclidean": 0.5027967392003667,
+    "spearman_euclidean": 0.4074292817838621,
+    "pearson_dot": 0.48089734656296484,
+    "spearman_dot": 0.40742316895396624,
+    "pearson_max": 0.511623904491221,
+    "spearman_max": 0.42960359305675605
+  },
+  "initial_triplet_eval_result": {
+    "all-nli-dev_cosine_accuracy": 0.82,
+    "all-nli-dev_dot_accuracy": 0.18,
+    "all-nli-dev_manhattan_accuracy": 0.8,
+    "all-nli-dev_euclidean_accuracy": 0.82,
+    "all-nli-dev_max_accuracy": 0.82
+  },
+  "final_embedding_eval_result": {
+    "pearson_cosine": 0.7875129360517548,
+    "spearman_cosine": 0.7971622270524685,
+    "pearson_manhattan": 0.7030048803797,
+    "spearman_manhattan": 0.7910971245312249,
+    "pearson_euclidean": 0.7044369478948409,
+    "spearman_euclidean": 0.7971598351418211,
+    "pearson_dot": 0.7875129293761509,
+    "spearman_dot": 0.797124855908508,
+    "pearson_max": 0.7875129360517548,
+    "spearman_max": 0.7971622270524685
+  },
+  "final_triplet_eval_result": {
+    "all-nli-test_cosine_accuracy": 0.9606299212598425,
+    "all-nli-test_dot_accuracy": 0.03543307086614173,
+    "all-nli-test_manhattan_accuracy": 0.9606299212598425,
+    "all-nli-test_euclidean_accuracy": 0.9606299212598425,
+    "all-nli-test_max_accuracy": 0.9606299212598425
+  },
+  "model_save_path": "/work/disa_lab/afif/projects/deduplication/trained_embedding_models/baai_bge-base-en_ubuntu_50frames_4train_0trim_2000_traindays/final"
+}

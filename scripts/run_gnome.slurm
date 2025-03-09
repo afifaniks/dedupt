@@ -4,7 +4,7 @@
 #SBATCH -n 1
 #SBATCH --mem=100G
 #SBATCH --partition=disa --gres=gpu:1
-#SBATCH --output=/home/mdafifal.mamun/research/S3M/out/train_out/s3m_gnome_3850days_%j.out
+#SBATCH --output=/home/mdafifal.mamun/research/S3M/out/train_out/bge_gnome_auc_multi_stack_3850days_%j.out
 
 CONFIG_PARAM=$1
 
@@ -15,4 +15,5 @@ conda activate tracesim
 
 echo "Training"
 
-python /home/mdafifal.mamun/research/S3M/src/main.py s3m --data_path /home/mdafifal.mamun/research/S3M/dataset/EMSE_data/gnome_2011/gnome_stacktraces_filtered_98_1_2.json --bucket_name gnome --lang cpp --loss ranknet
+# python /home/mdafifal.mamun/research/S3M/src/pretrain.py
+python /home/mdafifal.mamun/research/S3M/src/main.py transformer --data_path /home/mdafifal.mamun/research/S3M/dataset/EMSE_data/gnome_2011/gnome_stacktraces_filtered_98_1_2.json --bucket_name gnome --lang cpp --loss ranknet --encoder_path /work/disa_lab/afif/projects/deduplication/trained_embedding_models/baai_bge-base-en_gnome_100frames_1train_0trim_3850_traindays/final/final

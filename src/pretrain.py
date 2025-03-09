@@ -1,9 +1,11 @@
 # Disable wandb
+import argparse
 import json
 import os
+import random
 import time
-from collections import Counter
 
+import numpy as np
 import torch
 from sentence_transformers import (SentenceTransformer,
                                    SentenceTransformerTrainer,
@@ -23,12 +25,27 @@ from preprocess.entry_coders import Stack2Seq, Stack2SeqMultiStack
 from preprocess.seq_coder import SeqCoder, SeqCoderMulti
 from preprocess.tokenizers import SimpleTokenizer
 
+# Random seed
+seed = 42
+torch.manual_seed(seed)
+torch.cuda.manual_seed(seed)
+torch.cuda.manual_seed_all(seed)
+random.seed(seed)
+np.random.seed(seed)
+
 os.environ["WANDB_DISABLED"] = "true"
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
 
-plm_key = "BAAI/bge-base-en"
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--plm", default="BAAI/bge-base-en", type=str, help="Sentence transformer model key")
+args = parser.parse_args()
+
+print("Arguments:", args)
+
+plm_key = args.plm
 model = SentenceTransformer(plm_key, trust_remote_code=True)
 print(f"Model sequence length: {model.max_seq_length}")
 
@@ -51,17 +68,17 @@ language_map = {
     "ubuntu": "cpp",
 }
 
-bucket_name = "gnome"
+bucket_name = "eclipse"
 dataset_json = dataset_paths[bucket_name]
 language = language_map[bucket_name]
 generate_dataset = True
 batch_size = 16
 eval_size = 300
-max_num_frames = 100
+max_num_frames = 10
 stack_formatter = get_formatter(language, max_num_frames)
-num_train_pairs = 1
+num_train_pairs = 4
 num_test_pairs = 1
-trim_length = 0
+trim_length = 2
 frame_freq = {}
 test_only = False
 warmup_days = 350
@@ -98,6 +115,8 @@ config_to_write = {
 }
 
 print("Configurations:\n", json.dumps(config_to_write, indent=2))
+
+exit()
 
 # Print all training parameters
 print("Train pair:", num_train_pairs, "Test pair:", num_test_pairs)

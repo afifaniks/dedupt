@@ -40,7 +40,9 @@ print(f"Using device: {device}")
 
 
 parser = argparse.ArgumentParser()
+parser.add_argument("--bucket", required=True, type=str, help="Bucket name")
 parser.add_argument("--plm", default="BAAI/bge-base-en", type=str, help="Sentence transformer model key")
+parser.add_argument("--trim_len", default=0, type=int, help="Trim length for stack trace")
 args = parser.parse_args()
 
 print("Arguments:", args)
@@ -68,7 +70,7 @@ language_map = {
     "ubuntu": "cpp",
 }
 
-bucket_name = "eclipse"
+bucket_name = args.bucket
 dataset_json = dataset_paths[bucket_name]
 language = language_map[bucket_name]
 generate_dataset = True
@@ -76,9 +78,9 @@ batch_size = 16
 eval_size = 300
 max_num_frames = 10
 stack_formatter = get_formatter(language, max_num_frames)
-num_train_pairs = 4
+num_train_pairs = 5
 num_test_pairs = 1
-trim_length = 2
+trim_length = args.trim_len
 frame_freq = {}
 test_only = False
 warmup_days = 350
@@ -115,8 +117,6 @@ config_to_write = {
 }
 
 print("Configurations:\n", json.dumps(config_to_write, indent=2))
-
-exit()
 
 # Print all training parameters
 print("Train pair:", num_train_pairs, "Test pair:", num_test_pairs)

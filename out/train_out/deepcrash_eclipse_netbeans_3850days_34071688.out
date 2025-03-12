@@ -1,0 +1,28 @@
+Running deepcrash on netbeans...
+Device: cuda
+Arguments: Namespace(bucket_name='netbeans', data_path='/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/netbeans_2016/netbeans_stacktraces.json', encoder_path=None, lang=None, loss='ranknet', max_frames=-1, method='deepcrash', multi_stack=False, skip_training=False, trim_len=0)
+Max frames: 10
+Dataset: netbeans
+Method: deepcrash
+Trim:  0
+train_days 2000 test_days 700 warmup_days 350 val_days 50 loss_name ranknet
+  0%|          | 0/9598 [00:00<?, ?it/s]  8%|▊         | 768/9598 [00:00<00:01, 7672.78it/s] 16%|█▌        | 1536/9598 [00:00<00:01, 4672.27it/s] 22%|██▏       | 2068/9598 [00:00<00:02, 3492.93it/s] 26%|██▌       | 2469/9598 [00:00<00:02, 2843.69it/s] 29%|██▉       | 2788/9598 [00:00<00:02, 2497.53it/s] 32%|███▏      | 3058/9598 [00:01<00:02, 2322.24it/s] 34%|███▍      | 3300/9598 [00:01<00:02, 2181.56it/s] 37%|███▋      | 3522/9598 [00:01<00:02, 2087.75it/s] 39%|███▉      | 3732/9598 [00:01<00:02, 2051.22it/s] 41%|████      | 3951/9598 [00:01<00:02, 2084.55it/s] 44%|████▎     | 4179/9598 [00:01<00:02, 2133.57it/s] 46%|████▌     | 4406/9598 [00:01<00:02, 2169.21it/s] 48%|████▊     | 4634/9598 [00:01<00:02, 2200.06it/s] 51%|█████     | 4900/9598 [00:01<00:02, 2331.06it/s] 54%|█████▍    | 5178/9598 [00:02<00:01, 2460.25it/s] 57%|█████▋    | 5456/9598 [00:02<00:01, 2552.86it/s] 60%|█████▉    | 5718/9598 [00:02<00:01, 2569.86it/s] 62%|██████▏   | 5976/9598 [00:02<00:01, 2511.41it/s] 65%|██████▍   | 6229/9598 [00:02<00:01, 2389.30it/s] 67%|██████▋   | 6470/9598 [00:02<00:01, 2282.41it/s] 70%|██████▉   | 6700/9598 [00:02<00:01, 2148.87it/s] 72%|███████▏  | 6918/9598 [00:02<00:01, 2019.24it/s] 74%|███████▍  | 7123/9598 [00:02<00:01, 1886.18it/s] 76%|███████▌  | 7314/9598 [00:03<00:01, 1774.94it/s] 78%|███████▊  | 7494/9598 [00:03<00:01, 1680.34it/s] 80%|███████▉  | 7664/9598 [00:03<00:01, 1597.15it/s] 82%|████████▏ | 7825/9598 [00:03<00:01, 1522.81it/s] 83%|████████▎ | 7978/9598 [00:03<00:01, 1448.44it/s] 85%|████████▍ | 8124/9598 [00:03<00:01, 1385.48it/s] 86%|████████▌ | 8263/9598 [00:03<00:01, 1330.66it/s] 87%|████████▋ | 8397/9598 [00:03<00:00, 1281.18it/s] 89%|████████▉ | 8525/9598 [00:04<00:00, 1233.98it/s] 90%|█████████ | 8649/9598 [00:04<00:00, 1204.89it/s] 91%|█████████▏| 8770/9598 [00:04<00:00, 1184.28it/s] 93%|█████████▎| 8889/9598 [00:04<00:00, 1172.43it/s] 94%|█████████▍| 9006/9598 [00:04<00:00, 1165.00it/s] 95%|█████████▌| 9123/9598 [00:04<00:00, 1160.70it/s] 96%|█████████▋| 9239/9598 [00:04<00:00, 1156.00it/s] 97%|█████████▋| 9355/9598 [00:04<00:00, 1151.17it/s] 99%|█████████▊| 9471/9598 [00:04<00:00, 1145.33it/s]100%|█████████▉| 9586/9598 [00:04<00:00, 1138.82it/s]100%|██████████| 9598/9598 [00:04<00:00, 1936.23it/s]
+post train from 350 to 2400
+Training new model...
+Model saved successfully to path  frame2vec_netbeans.model
+Frame2Vec model trained successfully.
+Choosen model: DeepCrashModel(
+  (lstm): LSTM(64, 128, num_layers=2, batch_first=True, bidirectional=True)
+  (classifier): StackClassifier(
+    (classifier): Sequential(
+      (0): Dropout(p=0.1, inplace=False)
+      (1): Linear(in_features=256, out_features=128, bias=True)
+      (2): ReLU()
+      (3): Linear(in_features=128, out_features=1, bias=True)
+    )
+  )
+)
+Data sample: <data.buckets.event_state_model.StackAdditionState object at 0x7fea20e29940>
+Time to score validation data: 4.76837158203125e-07
+Total epochs: 4
+Train Step: 0it [00:00, ?it/s]Train Step: 1it [00:00,  4.85it/s]Train Step: 4it [00:00, 13.30it/s]Train Step: 7it [00:00, 17.33it/s]Train Step: 10it [00:00, 20.38it/s]Train Step: 13it [00:00, 22.18it/s]Train Step: 16it [00:00, 23.37it/s]Train Step: 19it [00:00, 24.15it/s]Train Step: 22it [00:01, 24.67it/s]Train Step: 25it [00:01, 25.12it/s]Train Step: 28it [00:01, 23.95it/s]Train Step: 31it [00:01, 24.75it/s]Train Step: 34it [00:01, 25.43it/s]Train Step: 37it [00:01, 25.45it/s]Train Step: 40it [00:01, 26.02it/s]Train Step: 43it [00:01, 26.18it/s]Train Step: 46it [00:01, 26.17it/s]Train Step: 49it [00:02, 25.96it/s]Train Step: 52it [00:02, 26.61it/s]Train Step: 55it [00:02, 26.78it/s]Train Step: 58it [00:02, 26.44it/s]Train Step: 61it [00:02, 26.63it/s]Train Step: 64it [00:02, 27.03it/s]Train Step: 67it [00:02, 26.98it/s]Train Step: 70it [00:02, 27.24it/s]Train Step: 73it [00:02, 27.46it/s]Train Step: 76it [00:03, 26.95it/s]Train Step: 79it [00:03, 27.04it/s]Train Step: 82it [00:03, 26.47it/s]Train Step: 85it [00:03, 26.45it/s]Train Step: 88it [00:03, 26.16it/s]Train Step: 91it [00:03, 26.16it/s]Train Step: 94it [00:03, 26.12it/s]Train Step: 97it [00:03, 26.58it/s]Train Step: 100it [00:03, 26.75it/s]Train Step: 103it [00:04, 26.73it/s]Train Step: 106it [00:04, 26.65it/s]Train Step: 109it [00:04, 26.61it/s]Train Step: 112it [00:04, 26.21it/s]Train Step: 115it [00:04, 24.06it/s]Train Step: 118it [00:04, 24.91it/s]Train Step: 121it [00:04, 25.42it/s]Train Step: 124it [00:04, 25.89it/s]Train Step: 127it [00:05, 25.85it/s]Train Step: 130it [00:05, 25.68it/s]Train Step: 133it [00:05, 26.03it/s]Train Step: 136it [00:05, 26.20it/s]Train Step: 139it [00:05, 26.78it/s]Train Step: 142it [00:05, 26.98it/s]Train Step: 145it [00:05, 26.93it/s]Train Step: 148it [00:05, 26.38it/s]Train Step: 151it [00:05, 26.41it/s]Train Step: 154it [00:06, 26.63it/s]Train Step: 157it [00:06, 27.24it/s]Train Step: 160it [00:06, 26.84it/s]slurmstepd: error: *** JOB 34071688 ON mgc1 CANCELLED AT 2025-03-11T22:35:31 ***

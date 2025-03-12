@@ -131,6 +131,9 @@ class JsonStackLoaderForCpp(StackLoader):
 
             # frames = [frame["function"] for frame in raw_frames]
 
+            if len(frames) == 0:
+                frames = ["unknown"]
+
             self.reports[st_id] = Stack(st_id, report["creation_ts"], [], frames)
 
     def name(self) -> str:

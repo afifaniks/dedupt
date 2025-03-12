@@ -15,14 +15,15 @@ from methods.classic.trace_sim import TraceSimModel
 from methods.neural import device
 from methods.neural.neural_base import NeuralModel
 from methods.neural.siam.aggregation import ConcatAggregation
-from methods.neural.siam.encoders import LSTMEncoder, TransformerEncoder
+from methods.neural.siam.encoders import (DeepCrashEncoder, LSTMEncoder,
+                                          TrainableTransformerEncoder,
+                                          TransformerEncoder)
 from methods.neural.siam.siam_network import (
-    SiamMultiModalModel,
-    SiamSentTransformerModel,
+    DeepCrashModel, SiamMultiModalModel, SiamSentTransformerModel,
     SiamSentTransformerModelMultiStack,
     SiamSentTransformerModelMultiStackAttention,
-    SiamSentTransformerModelMultiStackMultiHead,
-)
+    SiamSentTransformerModelMultiStackMeanAgg,
+    SiamSentTransformerModelMultiStackMultiHead)
 from preprocess.entry_coders import Stack2Seq, Stack2SeqMultiStack
 from preprocess.seq_coder import SeqCoder, SeqCoderMulti
 from preprocess.tokenizers import SimpleTokenizer
@@ -97,6 +98,15 @@ def create_neural_model(
             multi_stack=multi_stack,
         )
 
+        if "train" in encoder_path:
+            print("Using Trainable transformer encoder")
+            encoder = TrainableTransformerEncoder(
+                coder=coder,
+                stack_formatter=stack_formatter,
+                model_name=encoder_path,
+                multi_stack=multi_stack,
+            )
+
         if multi_stack:
             model = SiamSentTransformerModelMultiStack(
                 encoder, features_num=4, out_num=1
@@ -109,6 +119,11 @@ def create_neural_model(
         model = SiamMultiModalModel(
             encoders, ConcatAggregation, features_num=4, out_num=1
         ).to(device)
+
+    elif model_name == "deepcrash":
+        encoder = DeepCrashEncoder(coder, unsup_data, bucket_name)
+        model = DeepCrashModel(encoder, features_num=1, out_num=1)
+
     else:
         raise ValueError("Model name does not match")
 

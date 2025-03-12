@@ -17,6 +17,7 @@ all_methods = [
     "levenshtein",
     "brodie",
     "prefix",
+    "deepcrash"
 ]
 
 
@@ -96,7 +97,7 @@ def main():
         lang=args.lang,
     )
 
-    if args.method == "s3m" or args.method == "transformer":
+    if args.method == "s3m" or args.method == "transformer" or args.method == "deepcrash":
         neural_issues(
             bucket_netbeans,
             max_len=None,

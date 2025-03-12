@@ -64,16 +64,44 @@ def main():
         required=False,
         help="Maximum frames to be considered",
     )
+    parser.add_argument(
+        "--train_days",
+        type=int,
+        default=3850,
+        required=False,
+        help="Train days for the bucket",
+    )
+    parser.add_argument(
+        "--test_days",
+        type=int,
+        default=700,
+        required=False,
+        help="Test days for the bucket",
+    )
+    parser.add_argument(
+        "--warmup_days",
+        type=int,
+        default=350,
+        required=False,
+        help="Warmup days for the bucket",
+    )
+    parser.add_argument(
+        "--val_days",
+        type=int,
+        default=140,
+        required=False,
+        help="Validation days for the bucket",
+    )
     args = parser.parse_args()
 
     print("Arguments:", args)
 
     start = time()
 
-    warmup_days = 350
-    test_days = 700
-    val_days = 140
-    train_days = 3850
+    warmup_days = args.warmup_days
+    test_days = args.test_days
+    val_days = args.val_days
+    train_days = args.train_days
 
     default_frames = {
         "gnome": 100,

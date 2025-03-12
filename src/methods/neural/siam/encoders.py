@@ -339,7 +339,7 @@ class TransformerFrameEncoder:
 
 
 class Frame2Vec:
-    def __init__(self, model_path, vector_size=64, window=3, min_count=1, sg=1, negative=5, epochs=10):
+    def __init__(self, model_path, vector_size=64, window=3, min_count=1, sg=1, negative=20, epochs=10):
         """
         Initialize the Frame2Vec model with Word2Vec parameters.
         """

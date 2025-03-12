@@ -1,3 +1,4 @@
+import os
 import time
 import warnings
 from abc import ABC, abstractmethod
@@ -6,11 +7,15 @@ from pprint import pprint
 from timeit import timeit
 from typing import List
 
+import gensim
+import numpy as np
 import torch
+from gensim.models import Word2Vec
 from sentence_transformers import SentenceTransformer
 from torch import nn
 
 from data.formatters import StackFormatter
+from data.stack_loader import StackLoader
 from methods.neural import device
 from preprocess.seq_coder import SeqCoder
 
@@ -331,3 +336,109 @@ class TransformerFrameEncoder:
         embeddings = self.transformer.encode(sentences, convert_to_tensor=True)
 
         return embeddings
+
+
+class Frame2Vec:
+    def __init__(self, model_path, vector_size=64, window=3, min_count=1, sg=1, negative=5, epochs=10):
+        """
+        Initialize the Frame2Vec model with Word2Vec parameters.
+        """
+        self.vector_size = vector_size
+        self.model_path = model_path
+        self.window = window
+        self.min_count = min_count
+        self.sg = sg  # Skip-gram
+        self.negative = negative  # Negative sampling
+        self.epochs = epochs
+        self.model = None
+    
+    def tokenize_frame(self, frame: str) -> List[str]:
+        parts = frame.split('.')
+        return parts
+    
+    def train(self, stack_traces: List[List[str]]):
+        """
+        Train the Frame2Vec model on a list of stack traces. Load if exists, otherwise train and save.
+        """
+        if os.path.exists(self.model_path):
+            print("Loading existing model from path", self.model_path)
+            self.model = Word2Vec.load(self.model_path)
+        else:
+            print("Training new model...")
+            tokenized_traces = [[self.tokenize_frame(frame) for frame in trace] for trace in stack_traces]
+            tokenized_sentences = [item for sublist in tokenized_traces for item in sublist]
+
+            self.model = Word2Vec(
+                sentences=tokenized_sentences,
+                vector_size=self.vector_size,
+                window=self.window,
+                min_count=self.min_count,
+                sg=self.sg,
+                workers=4,
+                negative=self.negative,
+                epochs=self.epochs,            
+            )
+
+            # Save the trained model
+            self.model.save(self.model_path)
+            print("Model saved successfully to path ", self.model_path)
+    
+    def get_vector(self, frame: str):
+        """
+        Get the vector representation of a stack frame.
+        """
+        sub_frames = self.tokenize_frame(frame)
+        vectors = [self.model.wv[sub] for sub in sub_frames if sub in self.model.wv]
+
+        # print(np.array(vectors).shape)
+        
+        return np.mean(vectors, axis=0)
+    
+    def encode(self, stack_trace: List[str]):
+        """
+        Convert an entire stack trace to its vectorized representation.
+        """
+        frame_representations = [self.get_vector(frame) for frame in stack_trace]
+        frame_representations = np.array(frame_representations)
+        # Replace nan with zeros
+        frame_representations = [
+            rep if not np.isnan(rep).any() else np.zeros(self.vector_size) 
+            for rep in frame_representations
+        ]
+        return np.array(frame_representations)  # torch.tensor(np.mean(frame_representations, axis=0))
+
+
+class DeepCrashEncoder:
+    def __init__(
+        self,
+        coder: SeqCoder,
+        train_stack_ids: List[int],
+        bucket_name: str,
+        out_dim: int = 64,
+        multi_stack: bool = False,
+    ):
+        super(DeepCrashEncoder, self).__init__()
+        self.model_path = f"frame2vec_{bucket_name}.model"
+        self.frame2vec = Frame2Vec(self.model_path, vector_size=out_dim)
+        stacks = [coder(stack_id, transformer=True) for stack_id in train_stack_ids]
+        self.frame2vec.train(stacks)
+        print("Frame2Vec model trained successfully.")
+        self.coder = coder
+        self.output_dim = out_dim
+        self._name = "deepcrash_encoder"
+
+    @lru_cache(maxsize=200_000)
+    def forward(self, stack_id: int) -> torch.Tensor:
+        frames = self.coder(stack_id, transformer=True)
+        emb = self.frame2vec.encode(frames)
+
+        return torch.tensor(emb, dtype=torch.float32).to(device)
+
+    def opt_params(self) -> list:
+        return []
+
+    def out_dim(self) -> int:
+        return self.output_dim
+
+    def name(self) -> str:
+        return self._name

@@ -451,3 +451,66 @@ class SiamSentTransformerModelMultiStackMeanAgg(NeuralModel):
             + list(self.fc.parameters())
             + self.classifier.opt_params()
         )
+
+
+class DeepCrashModel(NeuralModel):
+    def __init__(self, encoder, hidden_size=50, **kwargs):
+        super(DeepCrashModel, self).__init__()
+        self.encoder = encoder
+        self.lstm = nn.LSTM(
+            input_size=self.encoder.out_dim(),
+            hidden_size=hidden_size,
+            num_layers=1,
+            batch_first=True,
+            bidirectional=True
+        )
+        self.classifier = StackClassifier(input_dim=hidden_size*2, **kwargs)
+        self.cache = {}
+
+    def fit(
+        self,
+        sim_train_data: List[Tuple[int, int, int]] = None,
+        unsup_data: Iterable[int] = None,
+    ):
+        pass
+
+    def get_agg(self, stack_id):
+        if self.training:
+            self.cache = {}
+            return self.encoder(stack_id)
+        else:
+            if stack_id not in self.cache:
+                self.cache[stack_id] = self.encoder(stack_id)
+            return self.cache[stack_id]
+
+    def forward(self, stack_id1, stack_id2):
+        emb1 = self.encoder.forward(stack_id1)
+        emb2 = self.encoder.forward(stack_id2)
+        if emb1 is None or emb2 is None:
+            return None
+        
+        emb1, _ = self.lstm(emb1.unsqueeze(0))  # Apply LSTM
+        emb2, _ = self.lstm(emb2.unsqueeze(0))
+
+        emb1 = emb1[:, -1, :]  # Last timestep per batch
+        emb2 = emb2[:, -1, :]
+
+        return self.classifier(emb1.squeeze(0), emb2.squeeze(0))
+
+    def predict(self, anchor_id, stack_ids):
+        with torch.no_grad():
+            y_pr = []
+            for stack_id in stack_ids:
+                result = self.forward(anchor_id, stack_id)
+                if result is not None:
+                    y_pr.append(result.cpu().numpy()[1])
+            return y_pr
+
+    def name(self):
+        return self.encoder.name() + "_deepcrash_lstm"
+
+    def train(self, mode=True):
+        super().train(mode)
+
+    def opt_params(self):
+        return self.encoder.opt_params() + self.classifier.opt_params()

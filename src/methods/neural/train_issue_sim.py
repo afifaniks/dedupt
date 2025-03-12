@@ -259,10 +259,10 @@ def train_issue_model(
             weights_only=True,
         )
     )
-    # log_metrics_auc(sim_stack_model, data_gen, bucket_data)
     if "trainable_encoder" in sim_stack_model.encoder.name():
         sim_stack_model.encoder.enable_cache()
     log_all_data_scores(sim_stack_model, data_gen)
+    # log_metrics_auc(sim_stack_model, data_gen, bucket_data)
 
     if writer:
         writer.close()

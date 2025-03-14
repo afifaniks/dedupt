@@ -10,3 +10,4 @@ checkpoints/
 .env
 nohup.out
 plots/
+*.model

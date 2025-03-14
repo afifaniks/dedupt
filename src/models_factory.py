@@ -98,14 +98,14 @@ def create_neural_model(
             multi_stack=multi_stack,
         )
 
-        if "train" in encoder_path:
-            print("Using Trainable transformer encoder")
-            encoder = TrainableTransformerEncoder(
-                coder=coder,
-                stack_formatter=stack_formatter,
-                model_name=encoder_path,
-                multi_stack=multi_stack,
-            )
+        # if "train" in encoder_path:
+        #     print("Using Trainable transformer encoder")
+        #     encoder = TrainableTransformerEncoder(
+        #         coder=coder,
+        #         stack_formatter=stack_formatter,
+        #         model_name=encoder_path,
+        #         multi_stack=multi_stack,
+        #     )
 
         if multi_stack:
             model = SiamSentTransformerModelMultiStack(

@@ -43,6 +43,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--bucket", required=True, type=str, help="Bucket name")
 parser.add_argument("--plm", default="BAAI/bge-base-en", type=str, help="Sentence transformer model key")
 parser.add_argument("--trim_len", default=0, type=int, help="Trim length for stack trace")
+parser.add_argument("--max_frames", default=10, type=int, help="Maximum number of frames")
 args = parser.parse_args()
 
 print("Arguments:", args)
@@ -76,9 +77,9 @@ language = language_map[bucket_name]
 generate_dataset = True
 batch_size = 16
 eval_size = 300
-max_num_frames = 10
+max_num_frames = args.max_frames
 stack_formatter = get_formatter(language, max_num_frames)
-num_train_pairs = 5
+num_train_pairs = 4
 num_test_pairs = 1
 trim_length = args.trim_len
 frame_freq = {}

@@ -454,13 +454,13 @@ class SiamSentTransformerModelMultiStackMeanAgg(NeuralModel):
 
 
 class DeepCrashModel(NeuralModel):
-    def __init__(self, encoder, hidden_size=128, **kwargs):
+    def __init__(self, encoder, hidden_size=100, **kwargs):
         super(DeepCrashModel, self).__init__()
         self.encoder = encoder
         self.lstm = nn.LSTM(
             input_size=self.encoder.out_dim(),
             hidden_size=hidden_size,
-            num_layers=2,
+            num_layers=1,
             batch_first=True,
             bidirectional=True
         )

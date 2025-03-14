@@ -398,6 +398,9 @@ class Frame2Vec:
         """
         Convert an entire stack trace to its vectorized representation.
         """
+        if len(stack_trace) == 0:
+            stack_trace = ['unknown']
+            
         frame_representations = [self.get_vector(frame) for frame in stack_trace]
         frame_representations = np.array(frame_representations)
         # Replace nan with zeros
@@ -414,7 +417,7 @@ class DeepCrashEncoder:
         coder: SeqCoder,
         train_stack_ids: List[int],
         bucket_name: str,
-        out_dim: int = 64,
+        out_dim: int = 50,
         multi_stack: bool = False,
     ):
         super(DeepCrashEncoder, self).__init__()
@@ -425,14 +428,19 @@ class DeepCrashEncoder:
         print("Frame2Vec model trained successfully.")
         self.coder = coder
         self.output_dim = out_dim
-        self._name = "deepcrash_encoder"
+        self._name = f"deepcrash_encoder_{bucket_name}"
 
     @lru_cache(maxsize=200_000)
     def forward(self, stack_id: int) -> torch.Tensor:
         frames = self.coder(stack_id, transformer=True)
         emb = self.frame2vec.encode(frames)
+        emb = torch.tensor(emb, dtype=torch.float32).to(device)
 
-        return torch.tensor(emb, dtype=torch.float32).to(device)
+        # Check if it matches the output dimension
+        if emb.size()[-1] == 0:
+            print(f"Invalid output dimension: {emb.size()}")
+
+        return emb
 
     def opt_params(self) -> list:
         return []

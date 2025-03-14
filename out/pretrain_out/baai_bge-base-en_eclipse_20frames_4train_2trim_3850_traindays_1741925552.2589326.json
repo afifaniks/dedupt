@@ -1,0 +1,60 @@
+{
+  "dataset_key": "eclipse_pretrain_dataset_3850_traindays",
+  "run_name": "baai_bge-base-en_eclipse_20frames_4train_2trim_3850_traindays",
+  "train_days": 3850,
+  "test_days": 700,
+  "val_days": 140,
+  "warmup_days": 350,
+  "plm_key": "BAAI/bge-base-en",
+  "bucket_name": "eclipse",
+  "dataset_json": "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/eclipse_2018/eclipse_stacktraces.json",
+  "language": "java",
+  "generate_dataset": true,
+  "batch_size": 16,
+  "eval_size": 300,
+  "max_num_frames": 20,
+  "num_train_pairs": 4,
+  "num_test_pairs": 1,
+  "frame_freq": {},
+  "test_only": false,
+  "trim_length": 2,
+  "model_save_path": "/work/disa_lab/afif/projects/deduplication/trained_embedding_models/baai_bge-base-en_eclipse_20frames_4train_2trim_3850_traindays/final",
+  "initial_embedding_eval_result": {
+    "pearson_cosine": 0.7388155303872858,
+    "spearman_cosine": 0.760072732513041,
+    "pearson_manhattan": 0.7486919744247387,
+    "spearman_manhattan": 0.7568466519980931,
+    "pearson_euclidean": 0.7497776341964357,
+    "spearman_euclidean": 0.7579256594449335,
+    "pearson_dot": 0.7388155824106369,
+    "spearman_dot": 0.7572612578396708,
+    "pearson_max": 0.7497776341964357,
+    "spearman_max": 0.760072732513041
+  },
+  "initial_triplet_eval_result": {
+    "all-nli-dev_cosine_accuracy": 0.92,
+    "all-nli-dev_dot_accuracy": 0.08,
+    "all-nli-dev_manhattan_accuracy": 0.92,
+    "all-nli-dev_euclidean_accuracy": 0.92,
+    "all-nli-dev_max_accuracy": 0.92
+  },
+  "final_embedding_eval_result": {
+    "pearson_cosine": 0.8720538132849516,
+    "spearman_cosine": 0.8043170665829547,
+    "pearson_manhattan": 0.8258677579123559,
+    "spearman_manhattan": 0.8036614445602788,
+    "pearson_euclidean": 0.8262236836285616,
+    "spearman_euclidean": 0.8043167080882176,
+    "pearson_dot": 0.8720538096798329,
+    "spearman_dot": 0.8034691682407898,
+    "pearson_max": 0.8720538132849516,
+    "spearman_max": 0.8043170665829547
+  },
+  "final_triplet_eval_result": {
+    "all-nli-test_cosine_accuracy": 0.9752066115702479,
+    "all-nli-test_dot_accuracy": 0.024793388429752067,
+    "all-nli-test_manhattan_accuracy": 0.9756927564414195,
+    "all-nli-test_euclidean_accuracy": 0.9752066115702479,
+    "all-nli-test_max_accuracy": 0.9756927564414195
+  }
+}

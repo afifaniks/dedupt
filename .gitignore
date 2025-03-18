@@ -9,6 +9,5 @@ tmp_trainer/
 checkpoints/
 .env
 nohup.out
-plots/
 *.model
 artifacts/*

@@ -41,6 +41,8 @@ print(f"Using device: {device}")
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--bucket", required=True, type=str, help="Bucket name")
+parser.add_argument("--data_root", required=True, type=str, help="Dataset root directory")
+parser.add_argument("--artifact_dir", required=True, type=str, help="Artifact root directory")
 parser.add_argument("--plm", default="BAAI/bge-base-en", type=str, help="Sentence transformer model key")
 parser.add_argument("--trim_len", default=0, type=int, help="Trim length for stack trace")
 parser.add_argument("--max_frames", default=10, type=int, help="Maximum number of frames")
@@ -49,6 +51,8 @@ args = parser.parse_args()
 print("Arguments:", args)
 
 plm_key = args.plm
+data_root = args.data_root
+artifact_dir = args.artifact_dir
 model = SentenceTransformer(plm_key, trust_remote_code=True)
 print(f"Model sequence length: {model.max_seq_length}")
 
@@ -58,10 +62,10 @@ print(f"Model sequence length: {model.max_seq_length}")
 print(f"Model size: {torch.cuda.memory_allocated() / 1024 ** 3:.2f} GB")
 
 dataset_paths = {
-    "eclipse": "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/eclipse_2018/eclipse_stacktraces.json",
-    "netbeans": "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/netbeans_2016/netbeans_stacktraces.json",
-    "gnome": "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/gnome_2011/gnome_stacktraces_filtered_98_1_2.json",
-    "ubuntu": "/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/campbell_dataset/campbell_stacktraces.json",
+    "eclipse": "eclipse_2018/eclipse_stacktraces.json",
+    "netbeans": "netbeans_2016/netbeans_stacktraces.json",
+    "gnome": "gnome_2011/gnome_stacktraces_filtered.json",
+    "ubuntu": "campbell_dataset/campbell_stacktraces.json",
 }
 
 language_map = {
@@ -72,7 +76,7 @@ language_map = {
 }
 
 bucket_name = args.bucket
-dataset_json = dataset_paths[bucket_name]
+dataset_json = os.path.join(data_root, dataset_paths[bucket_name]) 
 language = language_map[bucket_name]
 generate_dataset = True
 batch_size = 16
@@ -91,8 +95,11 @@ train_days = 3850
 plm_key_norm = plm_key.replace("/", "_").strip().lower()
 dataset_key = f"{bucket_name}_pretrain_dataset_{train_days}_traindays"
 run_name = f"{plm_key_norm}_{bucket_name}_{max_num_frames}frames_{num_train_pairs}train_{trim_length}trim_{train_days}_traindays"
-model_dir = "/work/disa_lab/afif/projects/deduplication/trained_embedding_models"
-datasets_dir = "/work/disa_lab/afif/projects/deduplication/datasets"
+model_dir = os.path.join(artifact_dir, "trained_embedding_models")
+datasets_dir = os.path.join(artifact_dir, "datasets")
+
+os.makedirs(model_dir, exist_ok=True)
+os.makedirs(datasets_dir, exist_ok=True)
 
 config_to_write = {
     "dataset_key": dataset_key,
@@ -103,6 +110,8 @@ config_to_write = {
     "warmup_days": warmup_days,
     "plm_key": plm_key,
     "bucket_name": bucket_name,
+    "artifact_dir": artifact_dir,
+    "data_root": data_root,
     "dataset_json": dataset_json,
     "language": language,
     "generate_dataset": generate_dataset,
@@ -384,11 +393,8 @@ model.save_pretrained(f"{config_to_write['model_save_path']}")
 json.dump(
     config_to_write,
     open(
-        f"/home/mdafifal.mamun/research/S3M/out/pretrain_out/{run_name}_{time.time()}.json",
+        f"{artifact_dir}/{run_name}_{time.time()}.json",
         "w",
     ),
     indent=2,
 )
-
-# 9. (Optional) Push it to the Hugging Face Hub
-# model.push_to_hub("mpnet-base-all-nli-triplet")

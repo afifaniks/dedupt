@@ -82,7 +82,7 @@ def create_neural_model(
     )
     model = None
 
-    if model_name == "transformer":
+    if model_name == "dedupt":
         print("Multi stack status:", multi_stack)
         stack_formatter = get_formatter(language, max_frames)
         if multi_stack:

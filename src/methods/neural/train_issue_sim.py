@@ -1,5 +1,6 @@
 import copy
 import math
+import os
 import random
 import sys
 from itertools import islice
@@ -179,6 +180,8 @@ def train_issue_model(
     data_gen.reset()
     assert len(train_sim_pairs_data_for_score) > 0
 
+    os.makedirs("artifacts", exist_ok=True)
+
     start = time()
     print("Time to score validation data:", time() - start)
 
@@ -210,22 +213,6 @@ def train_issue_model(
                     for optimizer in optimizers:
                         optimizer.step()
                         optimizer.zero_grad()
-                # sim_stack_model.train(False)
-                # if i == 0 or (i + 1) % period == 0:
-                #     prefix = f"\rEpoch {epoch}: {i + 1}. "
-                #     log_metrics(
-                #         sim_stack_model,
-                #         loss_computer,
-                #         train_sim_pairs_data_for_score,
-                #         test_sim_pairs_data_for_score,
-                #         train_data_for_score,
-                #         test_data_for_score,
-                #         prefix,
-                #         writer,
-                #         n_iter,
-                #     )
-                # if (i + 1) % 1000 == 0:
-                #     print()
                 n_iter += 1
             sim_stack_model.train(False)
             prefix = f"\rEpoch {epoch}: {i + 1}. "
@@ -248,19 +235,21 @@ def train_issue_model(
                 best_loss = test_loss
                 torch.save(
                     sim_stack_model.state_dict(),
-                    f"/home/mdafifal.mamun/research/S3M/models/{sim_stack_model.name()}.pth",
+                    f"artifacts/sim_model_{sim_stack_model.name()}.pth",
                 )
 
     # Load best model
     print("Loading best model...")
     sim_stack_model.load_state_dict(
         torch.load(
-            f"/home/mdafifal.mamun/research/S3M/models/{sim_stack_model.name()}.pth",
+            f"artifacts/sim_model_{sim_stack_model.name()}.pth",
             weights_only=True,
         )
     )
     if "trainable_encoder" in sim_stack_model.encoder.name():
         sim_stack_model.encoder.enable_cache()
+
+    # To enable auc calculation comment out the following line and uncomment the next line
     log_all_data_scores(sim_stack_model, data_gen)
     # log_metrics_auc(sim_stack_model, data_gen, bucket_data)
 

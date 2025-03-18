@@ -7,7 +7,7 @@ from issue_sim import classic_issues, neural_issues
 
 all_methods = [
     "s3m",
-    "transformer",
+    "dedupt",
     "lerch",
     "tracesim",
     "durfex",
@@ -125,7 +125,7 @@ def main():
         lang=args.lang,
     )
 
-    if args.method == "s3m" or args.method == "transformer" or args.method == "deepcrash":
+    if args.method == "s3m" or args.method == "dedupt" or args.method == "deepcrash":
         neural_issues(
             bucket_netbeans,
             max_len=None,

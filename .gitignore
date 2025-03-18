@@ -11,3 +11,4 @@ checkpoints/
 nohup.out
 plots/
 *.model
+artifacts/*

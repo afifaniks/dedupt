@@ -17,7 +17,8 @@ from methods.neural.neural_base import NeuralModel
 from methods.neural.siam.aggregation import ConcatAggregation
 from methods.neural.siam.encoders import (DeepCrashEncoder, LSTMEncoder,
                                           TrainableTransformerEncoder,
-                                          TransformerEncoder)
+                                          TransformerEncoder,
+                                          TransformerEncoderCodebert)
 from methods.neural.siam.siam_network import (
     DeepCrashModel, SiamMultiModalModel, SiamSentTransformerModel,
     SiamSentTransformerModelMultiStack,

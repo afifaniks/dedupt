@@ -12,3 +12,6 @@ nohup.out
 plots/
 *.model
 artifacts/*
+netbeans_chroma_index/*
+ubuntu_chroma_index/*
+faiss_index/*

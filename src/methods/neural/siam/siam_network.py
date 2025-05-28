@@ -514,3 +514,33 @@ class DeepCrashModel(NeuralModel):
 
     def opt_params(self):
         return self.encoder.opt_params() + self.classifier.opt_params()
+    
+
+class SiamSentLLM(NeuralModel):
+    def __init__(self, encoder):
+        self.encoder = encoder
+        super(SiamSentLLM, self).__init__()
+
+    def fit(
+        self,
+        sim_train_data: List[Tuple[int, int, int]] = None,
+        unsup_data: Iterable[int] = None,
+    ):
+        pass
+
+    def forward(self, stack_ids1, stack_ids2):
+        pass
+
+    def predict(self, anchor_id, stack_ids):
+        results = self.encoder.forward(anchor_id, stack_ids)
+
+        return results
+
+    def name(self):
+        return self.encoder.name() + "_llm"
+
+    def train(self, mode=True):
+        super().train(mode)
+
+    def opt_params(self):
+        pass

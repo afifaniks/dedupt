@@ -19,8 +19,9 @@ from methods.neural.siam.encoders import (DeepCrashEncoder, LSTMEncoder,
                                           TrainableTransformerEncoder,
                                           TransformerEncoder,
                                           TransformerEncoderCodebert)
+from methods.neural.siam.openai_encoder import LLMEncoder
 from methods.neural.siam.siam_network import (
-    DeepCrashModel, SiamMultiModalModel, SiamSentTransformerModel,
+    DeepCrashModel, SiamMultiModalModel, SiamSentLLM, SiamSentTransformerModel,
     SiamSentTransformerModelMultiStack,
     SiamSentTransformerModelMultiStackAttention,
     SiamSentTransformerModelMultiStackMeanAgg,
@@ -76,6 +77,7 @@ def create_neural_model(
     bucket_name: str = "",
     max_frames: int = 10,
     encoder_path: str = None,
+    all_stack_ids: List[int] = None,  # Only used for LLMEncoder
 ) -> NeuralModel:
     stack2seq = Stack2Seq(cased=False, trim_len=trim_len, sep=sep)
     coder = SeqCoder(
@@ -124,6 +126,23 @@ def create_neural_model(
     elif model_name == "deepcrash":
         encoder = DeepCrashEncoder(coder, unsup_data, bucket_name)
         model = DeepCrashModel(encoder, features_num=1, out_num=1)
+    
+    elif model_name == "llm":
+        stack_formatter = get_formatter(language, max_frames)
+        if multi_stack:
+            stack2seq = Stack2SeqMultiStack(cased=False, trim_len=trim_len, sep=sep)
+            coder = SeqCoderMulti(
+                stack_loader, stack2seq, SimpleTokenizer(), min_freq=0, max_len=max_len
+            )
+        encoder = LLMEncoder(
+            coder=coder,
+            stack_formatter=stack_formatter,
+            multi_stack=multi_stack,
+            bucket_name=bucket_name,
+        )
+        encoder.fit(all_stack_ids)
+        # print(encoder.forward(unsup_data[0]))
+        model = SiamSentLLM(encoder=encoder)
 
     else:
         raise ValueError("Model name does not match")

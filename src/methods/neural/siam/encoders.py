@@ -1,4 +1,5 @@
 import os
+import pickle
 import time
 import warnings
 from abc import ABC, abstractmethod
@@ -10,9 +11,16 @@ from typing import List
 import gensim
 import numpy as np
 import torch
+from dotenv import load_dotenv
 from gensim.models import Word2Vec
+from langchain.chains import RetrievalQA
+from langchain.chat_models import ChatOpenAI
+from langchain.docstore.document import Document
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.vectorstores import FAISS
 from sentence_transformers import SentenceTransformer
 from torch import nn
+from transformers import AutoModel, AutoTokenizer
 
 from data.formatters import StackFormatter
 from data.stack_loader import StackLoader
@@ -444,6 +452,197 @@ class DeepCrashEncoder:
 
     def opt_params(self) -> list:
         return []
+
+    def out_dim(self) -> int:
+        return self.output_dim
+
+    def name(self) -> str:
+        return self._name
+    
+
+class TransformerEncoderCodebert:
+    def __init__(
+        self,
+        coder,              # Your SeqCoder
+        stack_formatter,    # Your StackFormatter
+        model_name: str = "microsoft/codebert-base",
+        out_dim: int = 768,
+        multi_stack: bool = False,
+    ):
+        super().__init__()
+        print(f"Loading CodeBERT model: {model_name}")
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.model = AutoModel.from_pretrained(model_name)
+
+        # Freeze model parameters to prevent training
+        for param in self.model.parameters():
+            param.requires_grad = False
+
+        # Set model to eval mode
+        self.model.eval()
+
+        # Device setup (CUDA if available)
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model.to(self.device)
+
+        print(f"Selected formatter: {stack_formatter.name()}")
+        self.stack_formatter = stack_formatter
+        self.output_dim = out_dim
+        self.coder = coder
+        self.multi_stack = multi_stack
+        self._name = model_name.split("/")[-1].strip()
+        self._cache = {}
+
+    # @lru_cache(maxsize=200_000)
+    def forward(self, stack_id: int) -> torch.Tensor:
+        if stack_id in self._cache:
+            return self._cache[stack_id].to(self.device)
+    
+        frames = self.coder(stack_id, transformer=True)
+        if self.multi_stack:
+            frames = [self.stack_formatter.format(frame) for frame in frames]
+        else:
+            frames = self.stack_formatter.format(frames)
+
+        inputs = self.tokenizer(
+            frames,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=512,
+        )
+        inputs = {k: v.to(self.device) for k, v in inputs.items()}
+
+        with torch.no_grad():
+            outputs = self.model(**inputs)
+
+        last_hidden_states = outputs.last_hidden_state
+        cls_embeddings = last_hidden_states[:, 0, :]
+
+        result = None
+
+        if not self.multi_stack:
+            result = cls_embeddings[0].cpu()
+        else:
+            result = cls_embeddings.cpu()
+
+        self._cache[stack_id] = result
+
+        return result.to(self.device)
+
+    def opt_params(self) -> list:
+        # Return empty list since parameters are frozen (optional)
+        return []
+
+    def out_dim(self) -> int:
+        return self.output_dim
+
+    def name(self) -> str:
+        return self._name
+
+    def format_stack(self, stack):
+        warnings.warn(
+            "The 'format_stack' method is deprecated and will be removed",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        stack = list(dict.fromkeys(stack))
+        stack = [frame for frame in stack if frame.lower() != "none"]
+        return "\n".join([f"{i+1}: {frame}" for i, frame in enumerate(stack)])
+
+    def forward_all(self, stack_ids: list) -> torch.Tensor:
+        frames_batch = [self.coder(stack_id, transformer=True) for stack_id in stack_ids]
+
+        sentences = []
+        if self.multi_stack:
+            for frames in frames_batch:
+                formatted_frames = [self.stack_formatter.format(frame) for frame in frames]
+                sentences.extend(formatted_frames)
+        else:
+            sentences = [self.stack_formatter.format(frames) for frames in frames_batch]
+
+        inputs = self.tokenizer(
+            sentences,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=512,
+        )
+        inputs = {k: v.to(self.device) for k, v in inputs.items()}
+
+        with torch.no_grad():
+            outputs = self.model(**inputs)
+
+        last_hidden_states = outputs.last_hidden_state
+        cls_embeddings = last_hidden_states[:, 0, :]
+
+        return cls_embeddings
+
+
+class LLMEncoder:
+    def __init__(
+        self,
+        coder: SeqCoder,
+        stack_formatter: StackFormatter,
+        multi_stack: bool = False,
+        bucket_name: str = "",
+    ):
+        # super(TransformerEncoder, self).__init__(
+        #     f"transformer_{model_name}", None, dim=384, out_dim=out_dim, **kvargs
+        # )
+        super(LLMEncoder, self).__init__()
+        self.stack_formatter = stack_formatter
+        self.coder = coder
+        self.multi_stack = multi_stack
+        self.bucket_name = bucket_name
+        self.out_dim = 1536
+        load_dotenv()
+        self._openai_api_key = os.getenv("OPENAI_API_KEY")
+        self._index_path = f"{bucket_name}_faiss_index"
+        self._meta_path = f"{bucket_name}_metadata.pkl"
+        self.embeddings_client = OpenAIEmbeddings(model="text-embedding-3-small")
+        self.vectorestore = None
+        self.metadata = None
+
+    @lru_cache(maxsize=200_000)
+    def forward(self, stack_id: int) -> torch.Tensor:
+        assert self.vectorstore is not None, "Vectorstore must be loaded via fit() before calling forward()"
+
+        # Step 1: Check if the ID already exists
+        if self.metadata and any(m["id"] == stack_id for m in self.metadata):
+            # Retrieve vector using FAISS internal docstore
+            for doc in self.vectorstore.docstore._dict.values():
+                if doc.metadata["id"] == stack_id:
+                    return torch.tensor(doc.embedding)
+
+        # Step 2: If not found, compute new embedding
+        frames = self.coder(stack_id, transformer=True)
+        if self.multi_stack:
+            frames = [self.stack_formatter.format(frame) for frame in frames]
+            content = "\n\n".join(frames)
+        else:
+            content = self.stack_formatter.format(frames)
+
+        embedding = self.embeddings_client.embed_query(content)
+
+        # Step 4: Create and add new Document
+        new_doc = Document(page_content=content, metadata={"id": stack_id})
+        self.vectorstore.add_documents([new_doc])
+        self.vectorstore.docstore._dict[self.vectorstore.index.ntotal - 1].embedding = embedding  # Optional: attach directly
+
+        # Step 5: Persist updated index and metadata
+        self.vectorstore.save_local(self._index_path)
+        if self.metadata is not None:
+            self.metadata.append({"id": stack_id})
+        else:
+            self.metadata = [{"id": stack_id}]
+        with open(self._meta_path, "wb") as f:
+            pickle.dump(self.metadata, f)
+
+        return torch.tensor(embedding)
+
+    def opt_params(self) -> list:
+        pass
 
     def out_dim(self) -> int:
         return self.output_dim

@@ -2,8 +2,12 @@ import argparse
 from time import time
 from typing import List
 
+from dotenv import load_dotenv
+
 from data.buckets.bucket_data import BucketData, OtherBucketData
-from issue_sim import classic_issues, neural_issues
+from issue_sim_rag import neural_issues
+
+load_dotenv()
 
 all_methods = [
     "s3m",
@@ -17,16 +21,9 @@ all_methods = [
     "levenshtein",
     "brodie",
     "prefix",
-    "deepcrash"
+    "deepcrash",
+    "llm"
 ]
-
-
-def classic_issue(data: BucketData, methods: List[str] = None, trim_len: int = 0):
-    methods = methods or ["lerch"]
-    for method in methods:
-        print("Method:", method)
-        classic_issues(data, method, max_len=None, trim_len=trim_len)
-        print()
 
 
 def main():
@@ -67,7 +64,7 @@ def main():
     parser.add_argument(
         "--train_days",
         type=int,
-        default=3850,
+        default=3500,
         required=False,
         help="Train days for the bucket",
     )
@@ -125,7 +122,7 @@ def main():
         lang=args.lang,
     )
 
-    if args.method == "s3m" or args.method == "dedupt" or args.method == "deepcrash":
+    if args.method == "s3m" or args.method == "dedupt" or args.method == "deepcrash" or args.method == "llm":
         neural_issues(
             bucket_netbeans,
             max_len=None,

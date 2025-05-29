@@ -170,13 +170,13 @@ def paper_metrics_iter(
                 correct_top.append(i)
                 break
         
-        if total_preds > 100:
-            print("Stopping early after 100 predictions")
-            break
+        # if total_preds > 100:
+        #     print("Stopping early after 100 predictions")
+        #     break
 
     scores = {}
-    scores["map"] = map_metric(preds_list)
-    scores["auc"] = auc_metric(preds_list)
+    # scores["map"] = map_metric(preds_list)
+    # scores["auc"] = auc_metric(preds_list)
     scores["mrr"] = bootstrap_aggregate_metric(np.mean, aps)
 
     for i in range(1, 11):

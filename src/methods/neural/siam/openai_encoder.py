@@ -19,7 +19,7 @@ class LLMEncoder:
 
         index_path = f"./{bucket_name}_chroma_index"
         meta_path = f"{bucket_name}_metadata.pkl"
-        self.vector_manager = ChromaVectorStoreManager(index_path, meta_path, bucket_name)
+        self.vector_manager = ChromaVectorStoreManager(index_path, meta_path, bucket_name, rerank=True)
 
     def fit(self, unsupervised_data):
         if self.vector_manager.has_index():
@@ -30,7 +30,7 @@ class LLMEncoder:
         for stack_id in unsupervised_data:
             frames = self.coder(stack_id, transformer=True)
             if self.multi_stack:
-                frames = [self.stack_formatter.format(frame) for frame in frames[:5]]
+                frames = [self.stack_formatter.format(frame) for frame in frames[:5]]  # Limiting to avoid token limit issues
                 frames = "\n\n".join(frames)
             else:
                 frames = self.stack_formatter.format(frames)

@@ -579,70 +579,59 @@ class TransformerEncoderCodebert:
         return cls_embeddings
 
 
-class LLMEncoder:
+class OpenAIEncoder:
     def __init__(
         self,
-        coder: SeqCoder,
-        stack_formatter: StackFormatter,
-        multi_stack: bool = False,
-        bucket_name: str = "",
+        coder,
+        stack_formatter,
+        model_name="text-embedding-3-small",
+        out_dim=1536,
+        multi_stack=False,
+        cache_dir="./embedding_cache",  # New: directory for cached embeddings
     ):
-        # super(TransformerEncoder, self).__init__(
-        #     f"transformer_{model_name}", None, dim=384, out_dim=out_dim, **kvargs
-        # )
-        super(LLMEncoder, self).__init__()
+        super(OpenAIEncoder, self).__init__()
+        print(f"Using OpenAI embedding model: {model_name}")
+        self.embedding_client = OpenAIEmbeddings(model=model_name)
+        print(f"Selected formatter: {stack_formatter.name()}")
         self.stack_formatter = stack_formatter
+        self.output_dim = out_dim
         self.coder = coder
         self.multi_stack = multi_stack
-        self.bucket_name = bucket_name
-        self.out_dim = 1536
-        load_dotenv()
-        self._openai_api_key = os.getenv("OPENAI_API_KEY")
-        self._index_path = f"{bucket_name}_faiss_index"
-        self._meta_path = f"{bucket_name}_metadata.pkl"
-        self.embeddings_client = OpenAIEmbeddings(model="text-embedding-3-small")
-        self.vectorestore = None
-        self.metadata = None
+        self._name = model_name
+        self.cache_dir = cache_dir
+        os.makedirs(self.cache_dir, exist_ok=True)
+
+    def _get_cache_path(self, stack_id: int) -> str:
+        return os.path.join(self.cache_dir, f"{stack_id}.pt")
 
     @lru_cache(maxsize=200_000)
     def forward(self, stack_id: int) -> torch.Tensor:
-        assert self.vectorstore is not None, "Vectorstore must be loaded via fit() before calling forward()"
+        cache_path = self._get_cache_path(stack_id)
+        if os.path.exists(cache_path):
+            print(f"From cache -> stack_id {stack_id}")
+            return torch.load(cache_path)
 
-        # Step 1: Check if the ID already exists
-        if self.metadata and any(m["id"] == stack_id for m in self.metadata):
-            # Retrieve vector using FAISS internal docstore
-            for doc in self.vectorstore.docstore._dict.values():
-                if doc.metadata["id"] == stack_id:
-                    return torch.tensor(doc.embedding)
-
-        # Step 2: If not found, compute new embedding
         frames = self.coder(stack_id, transformer=True)
         if self.multi_stack:
-            frames = [self.stack_formatter.format(frame) for frame in frames]
-            content = "\n\n".join(frames)
+            # text = "\n".join([self.stack_formatter.format(f) for f in frames])
+            text = [self.stack_formatter.format(frame) for frame in frames[:10]]  # List of text
         else:
-            content = self.stack_formatter.format(frames)
+            text = self.stack_formatter.format(frames) # Plain text
 
-        embedding = self.embeddings_client.embed_query(content)
+        embedding = None
 
-        # Step 4: Create and add new Document
-        new_doc = Document(page_content=content, metadata={"id": stack_id})
-        self.vectorstore.add_documents([new_doc])
-        self.vectorstore.docstore._dict[self.vectorstore.index.ntotal - 1].embedding = embedding  # Optional: attach directly
-
-        # Step 5: Persist updated index and metadata
-        self.vectorstore.save_local(self._index_path)
-        if self.metadata is not None:
-            self.metadata.append({"id": stack_id})
+        if self.multi_stack:
+            embedding = [self.embedding_client.embed_query(t) for t in text]
         else:
-            self.metadata = [{"id": stack_id}]
-        with open(self._meta_path, "wb") as f:
-            pickle.dump(self.metadata, f)
+            embedding = self.embedding_client.embed_query(text)
 
-        return torch.tensor(embedding)
+        embedding_tensor = torch.tensor(embedding)
+
+        torch.save(embedding_tensor, cache_path)
+        return embedding_tensor
 
     def opt_params(self) -> list:
-        pass
+        return []
 
     def out_dim(self) -> int:
         return self.output_dim

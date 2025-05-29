@@ -1,0 +1,81 @@
+/home/mdafifal.mamun/miniconda3/envs/tracesim/lib/python3.8/site-packages/langchain/chat_models/__init__.py:33: LangChainDeprecationWarning: Importing chat models from langchain is deprecated. Importing from langchain will no longer be supported as of langchain==0.2.0. Please import from langchain-community instead:
+
+`from langchain_community.chat_models import ChatOpenAI`.
+
+To install langchain-community run `pip install -U langchain-community`.
+  warnings.warn(
+/home/mdafifal.mamun/research/S3M/src/methods/neural/siam/encoders.py:19: LangChainDeprecationWarning: Importing OpenAIEmbeddings from langchain.embeddings is deprecated. Please replace deprecated imports:
+
+>> from langchain.embeddings import OpenAIEmbeddings
+
+with new imports of:
+
+>> from langchain_community.embeddings import OpenAIEmbeddings
+You can use the langchain cli to **automatically** upgrade many imports. Please see documentation here <https://python.langchain.com/v0.2/docs/versions/v0_2/>
+  from langchain.embeddings import OpenAIEmbeddings
+/home/mdafifal.mamun/research/S3M/src/methods/neural/siam/encoders.py:20: LangChainDeprecationWarning: Importing FAISS from langchain.vectorstores is deprecated. Please replace deprecated imports:
+
+>> from langchain.vectorstores import FAISS
+
+with new imports of:
+
+>> from langchain_community.vectorstores import FAISS
+You can use the langchain cli to **automatically** upgrade many imports. Please see documentation here <https://python.langchain.com/v0.2/docs/versions/v0_2/>
+  from langchain.vectorstores import FAISS
+/home/mdafifal.mamun/research/S3M/src/methods/neural/siam/encoders.py:594: LangChainDeprecationWarning: The class `OpenAIEmbeddings` was deprecated in LangChain 0.0.9 and will be removed in 1.0. An updated version of the class exists in the langchain-openai package and should be used instead. To use it run `pip install -U langchain-openai` and import as `from langchain_openai import OpenAIEmbeddings`.
+  self.embedding_client = OpenAIEmbeddings(model=model_name)
+Device: cuda
+Arguments: Namespace(bucket_name='netbeans', data_path='/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/netbeans_2016/netbeans_stacktraces.json', encoder_path='none', lang='java', loss='ranknet', max_frames=-1, method='dedupt', multi_stack=True, skip_training=False, test_days=700, train_days=3850, trim_len=0, val_days=140, warmup_days=350)
+Max frames: 10
+Dataset: netbeans
+Method: dedupt
+Trim:  0
+train_days 3850 test_days 700 warmup_days 350 val_days 140 loss_name ranknet
+Stack loader:  Java json_loader_multi
+Multi stack status: True
+Selected formatter: java num_frames: 10
+Using OpenAI embedding model: text-embedding-3-small
+Selected formatter: java
+Current model name: text-embedding-3-small_senttrans
+Choosen model: SiamSentTransformerModelMultiStack(
+  (classifier): StackClassifier(
+    (classifier): Sequential(
+      (0): Dropout(p=0.1, inplace=False)
+      (1): Linear(in_features=12288, out_features=6144, bias=True)
+      (2): ReLU()
+      (3): Linear(in_features=6144, out_features=1, bias=True)
+    )
+  )
+)
+Data sample: <data.buckets.event_state_model.StackAdditionState object at 0x7f1b4eac39d0>
+Time to score validation data: 4.76837158203125e-07
+Total epochs: 2
+Train Step: 0it [00:00, ?it/s]Train Step: 0it [00:02, ?it/s]
+Traceback (most recent call last):
+  File "/home/mdafifal.mamun/research/S3M/src/main.py", line 160, in <module>
+    main()
+  File "/home/mdafifal.mamun/research/S3M/src/main.py", line 136, in main
+    neural_issues(
+  File "/home/mdafifal.mamun/research/S3M/src/issue_sim.py", line 117, in neural_issues
+    train_issue_model(
+  File "/home/mdafifal.mamun/research/S3M/src/methods/neural/train_issue_sim.py", line 207, in train_issue_model
+    loss = loss_computer.get_event(event)
+  File "/home/mdafifal.mamun/research/S3M/src/methods/neural/losses.py", line 77, in get_event
+    predictions = self.get_event_predictions(event)
+  File "/home/mdafifal.mamun/research/S3M/src/methods/neural/losses.py", line 61, in get_event_predictions
+    good_sim = self.model(event.st_id, good_id)
+  File "/home/mdafifal.mamun/miniconda3/envs/tracesim/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/mdafifal.mamun/miniconda3/envs/tracesim/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1562, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/mdafifal.mamun/research/S3M/src/methods/neural/siam/siam_network.py", line 148, in forward
+    max_sim, (i, j) = self.find_most_similar_pair(agg_embedding1, agg_embedding2)
+  File "/home/mdafifal.mamun/research/S3M/src/methods/neural/siam/siam_network.py", line 133, in find_most_similar_pair
+    embeddings1 = F.normalize(embeddings1, p=2, dim=1)
+  File "/home/mdafifal.mamun/miniconda3/envs/tracesim/lib/python3.8/site-packages/torch/nn/functional.py", line 4816, in normalize
+    denom = input.norm(p, dim, keepdim=True).clamp_min(eps).expand_as(input)
+  File "/home/mdafifal.mamun/miniconda3/envs/tracesim/lib/python3.8/site-packages/torch/_tensor.py", line 761, in norm
+    return torch.norm(self, p, dim, keepdim, dtype=dtype)
+  File "/home/mdafifal.mamun/miniconda3/envs/tracesim/lib/python3.8/site-packages/torch/functional.py", line 1632, in norm
+    return torch.linalg.vector_norm(input, _p, _dim, keepdim, dtype=dtype)
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)

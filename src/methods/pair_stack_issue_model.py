@@ -62,6 +62,53 @@ class PairStackBasedSimModel(SimIssueModel):
             yield event.st_id, event.is_id, pred_issues
 
 
+class PairStackBasedSimModelRAG(SimIssueModel):
+    def __init__(self, stack_model: SimStackModel, issue_scorer: IssueScorer):
+        self.stack_model = stack_model
+        self.issue_scorer = issue_scorer
+
+    def name(self) -> str:
+        return "_".join(
+            [model.name() for model in [self.stack_model, self.issue_scorer]]
+        )
+
+    def predict_all(
+        self, st_id: int, issues: Dict[int, Issue], with_stacks: bool = False
+    ) -> Tuple[Dict[int, Union[float, Tuple[float, int]]], int]:
+        pred_issues = {}
+        stacks_cnt = 0
+        all_stacks = []
+        for id, issue in issues.items():
+            # stacks = self.stacks_selector.select(issue.confident_state())
+            stacks = issue.confident_state()
+            stacks_cnt += len(stacks)
+            if len(stacks) == 0:
+                pred_issues[id] = 0
+                continue
+            all_stacks.extend(stacks)
+
+        all_stacks = list(set(all_stacks))
+        print(f"Predicting for issue {st_id} with {len(all_stacks)} stacks")
+
+        preds = self.stack_model.predict(st_id, [st.id for st in all_stacks])
+        preds = {st: score for st, score in preds}
+
+        # Sort by score
+        preds = {k: v for k, v in sorted(preds.items(), key=lambda item: item[1], reverse=True)}
+        # score = self.issue_scorer.score(preds, with_arg=False)
+        # pred_issues[id] = score
+
+        return preds, stacks_cnt
+
+    def predict(
+        self, events: Iterable[StackAdditionState]
+    ) -> Iterable[Tuple[int, int, Dict[int, float]]]:
+        for i, event in tqdm(enumerate(events), desc="Predicting"):
+            pred_issues, _ = self.predict_all(event.st_id, event.issues)
+            yield event.st_id, event.is_id, pred_issues
+
+
+
 # class PairStackBasedSimModel(SimIssueModel):
 #     def __init__(self, stack_model: SimStackModel, issue_scorer: IssueScorer):
 #         self.stack_model = stack_model

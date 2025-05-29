@@ -1,4 +1,5 @@
 import os
+import pickle
 import time
 import warnings
 from abc import ABC, abstractmethod
@@ -10,9 +11,16 @@ from typing import List
 import gensim
 import numpy as np
 import torch
+from dotenv import load_dotenv
 from gensim.models import Word2Vec
+from langchain.chains import RetrievalQA
+from langchain.chat_models import ChatOpenAI
+from langchain.docstore.document import Document
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.vectorstores import FAISS
 from sentence_transformers import SentenceTransformer
 from torch import nn
+from transformers import AutoModel, AutoTokenizer
 
 from data.formatters import StackFormatter
 from data.stack_loader import StackLoader
@@ -441,6 +449,186 @@ class DeepCrashEncoder:
             print(f"Invalid output dimension: {emb.size()}")
 
         return emb
+
+    def opt_params(self) -> list:
+        return []
+
+    def out_dim(self) -> int:
+        return self.output_dim
+
+    def name(self) -> str:
+        return self._name
+    
+
+class TransformerEncoderCodebert:
+    def __init__(
+        self,
+        coder,              # Your SeqCoder
+        stack_formatter,    # Your StackFormatter
+        model_name: str = "microsoft/codebert-base",
+        out_dim: int = 768,
+        multi_stack: bool = False,
+    ):
+        super().__init__()
+        print(f"Loading CodeBERT model: {model_name}")
+        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.model = AutoModel.from_pretrained(model_name)
+
+        # Freeze model parameters to prevent training
+        for param in self.model.parameters():
+            param.requires_grad = False
+
+        # Set model to eval mode
+        self.model.eval()
+
+        # Device setup (CUDA if available)
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.model.to(self.device)
+
+        print(f"Selected formatter: {stack_formatter.name()}")
+        self.stack_formatter = stack_formatter
+        self.output_dim = out_dim
+        self.coder = coder
+        self.multi_stack = multi_stack
+        self._name = model_name.split("/")[-1].strip()
+        self._cache = {}
+
+    # @lru_cache(maxsize=200_000)
+    def forward(self, stack_id: int) -> torch.Tensor:
+        if stack_id in self._cache:
+            return self._cache[stack_id].to(self.device)
+    
+        frames = self.coder(stack_id, transformer=True)
+        if self.multi_stack:
+            frames = [self.stack_formatter.format(frame) for frame in frames]
+        else:
+            frames = self.stack_formatter.format(frames)
+
+        inputs = self.tokenizer(
+            frames,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=512,
+        )
+        inputs = {k: v.to(self.device) for k, v in inputs.items()}
+
+        with torch.no_grad():
+            outputs = self.model(**inputs)
+
+        last_hidden_states = outputs.last_hidden_state
+        cls_embeddings = last_hidden_states[:, 0, :]
+
+        result = None
+
+        if not self.multi_stack:
+            result = cls_embeddings[0].cpu()
+        else:
+            result = cls_embeddings.cpu()
+
+        self._cache[stack_id] = result
+
+        return result.to(self.device)
+
+    def opt_params(self) -> list:
+        # Return empty list since parameters are frozen (optional)
+        return []
+
+    def out_dim(self) -> int:
+        return self.output_dim
+
+    def name(self) -> str:
+        return self._name
+
+    def format_stack(self, stack):
+        warnings.warn(
+            "The 'format_stack' method is deprecated and will be removed",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        stack = list(dict.fromkeys(stack))
+        stack = [frame for frame in stack if frame.lower() != "none"]
+        return "\n".join([f"{i+1}: {frame}" for i, frame in enumerate(stack)])
+
+    def forward_all(self, stack_ids: list) -> torch.Tensor:
+        frames_batch = [self.coder(stack_id, transformer=True) for stack_id in stack_ids]
+
+        sentences = []
+        if self.multi_stack:
+            for frames in frames_batch:
+                formatted_frames = [self.stack_formatter.format(frame) for frame in frames]
+                sentences.extend(formatted_frames)
+        else:
+            sentences = [self.stack_formatter.format(frames) for frames in frames_batch]
+
+        inputs = self.tokenizer(
+            sentences,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=512,
+        )
+        inputs = {k: v.to(self.device) for k, v in inputs.items()}
+
+        with torch.no_grad():
+            outputs = self.model(**inputs)
+
+        last_hidden_states = outputs.last_hidden_state
+        cls_embeddings = last_hidden_states[:, 0, :]
+
+        return cls_embeddings
+
+
+class OpenAIEncoder:
+    def __init__(
+        self,
+        coder,
+        stack_formatter,
+        model_name="text-embedding-3-small",
+        out_dim=1536,
+        multi_stack=False,
+        cache_dir="./embedding_cache",  # New: directory for cached embeddings
+    ):
+        super(OpenAIEncoder, self).__init__()
+        print(f"Using OpenAI embedding model: {model_name}")
+        self.embedding_client = OpenAIEmbeddings(model=model_name)
+        print(f"Selected formatter: {stack_formatter.name()}")
+        self.stack_formatter = stack_formatter
+        self.output_dim = out_dim
+        self.coder = coder
+        self.multi_stack = multi_stack
+        self._name = model_name
+        self.cache_dir = cache_dir
+        os.makedirs(self.cache_dir, exist_ok=True)
+
+    def _get_cache_path(self, stack_id: int) -> str:
+        return os.path.join(self.cache_dir, f"{stack_id}.pt")
+
+    @lru_cache(maxsize=200_000)
+    def forward(self, stack_id: int) -> torch.Tensor:
+        cache_path = self._get_cache_path(stack_id)
+        if os.path.exists(cache_path):
+            print(f"From cache -> stack_id {stack_id}")
+            return torch.load(cache_path)
+
+        frames = self.coder(stack_id, transformer=True)
+        if self.multi_stack:
+            # text = "\n".join([self.stack_formatter.format(f) for f in frames])
+            text = [self.stack_formatter.format(frame) for frame in frames[:10]]  # List of text
+        else:
+            text = self.stack_formatter.format(frames) # Plain text
+
+        embedding = None
+
+        if self.multi_stack:
+            embedding = [self.embedding_client.embed_query(t) for t in text]
+        else:
+            embedding = self.embedding_client.embed_query(text)
+
+        embedding_tensor = torch.tensor(embedding)
+
+        torch.save(embedding_tensor, cache_path)
+        return embedding_tensor
 
     def opt_params(self) -> list:
         return []

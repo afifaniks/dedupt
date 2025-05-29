@@ -101,6 +101,7 @@ class SiamSentTransformerModelMultiStack(NeuralModel):
         super(SiamSentTransformerModelMultiStack, self).__init__()
         self.encoder = encoder
         self.hidden_dim = hidden_dim
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         # self.fc = nn.Linear(self.encoder.out_dim(), self.hidden_dim)
         self.classifier = StackClassifier(
             input_dim=self.encoder.out_dim() * 2, **kwargs
@@ -127,6 +128,7 @@ class SiamSentTransformerModelMultiStack(NeuralModel):
 
     def aggregate_embeddings(self, stack_id):
         embeddings = self.encoder.forward(stack_id)
+        embeddings = embeddings.cuda(self.device)
         return embeddings  # torch.mean(embeddings, dim=0)
 
     def find_most_similar_pair(self, embeddings1, embeddings2):
@@ -514,3 +516,33 @@ class DeepCrashModel(NeuralModel):
 
     def opt_params(self):
         return self.encoder.opt_params() + self.classifier.opt_params()
+    
+
+class SiamSentLLM(NeuralModel):
+    def __init__(self, encoder):
+        self.encoder = encoder
+        super(SiamSentLLM, self).__init__()
+
+    def fit(
+        self,
+        sim_train_data: List[Tuple[int, int, int]] = None,
+        unsup_data: Iterable[int] = None,
+    ):
+        pass
+
+    def forward(self, stack_ids1, stack_ids2):
+        pass
+
+    def predict(self, anchor_id, stack_ids):
+        results = self.encoder.forward(anchor_id, stack_ids)
+
+        return results
+
+    def name(self):
+        return self.encoder.name() + "_llm"
+
+    def train(self, mode=True):
+        super().train(mode)
+
+    def opt_params(self):
+        pass

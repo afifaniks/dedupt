@@ -11,3 +11,8 @@ checkpoints/
 nohup.out
 *.model
 artifacts/*
+netbeans_chroma_index/*
+ubuntu_chroma_index/*
+faiss_index/*
+embedding_cache/*
+event_states/*

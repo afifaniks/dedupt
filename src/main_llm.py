@@ -2,31 +2,16 @@ import argparse
 from time import time
 from typing import List
 
+from dotenv import load_dotenv
+
 from data.buckets.bucket_data import BucketData, OtherBucketData
-from issue_sim import classic_issues, neural_issues
+from issue_sim_llm import neural_issues
+
+load_dotenv()
 
 all_methods = [
-    "s3m",
-    "dedupt",
-    "lerch",
-    "tracesim",
-    "durfex",
-    "moroo",
-    "rebucket",
-    "cosine",
-    "levenshtein",
-    "brodie",
-    "prefix",
-    "deepcrash"
+    "llm"
 ]
-
-
-def classic_issue(data: BucketData, methods: List[str] = None, trim_len: int = 0):
-    methods = methods or ["lerch"]
-    for method in methods:
-        print("Method:", method)
-        classic_issues(data, method, max_len=None, trim_len=trim_len)
-        print()
 
 
 def main():
@@ -41,12 +26,6 @@ def main():
     )
     parser.add_argument("--data_path", type=str, help="Path to file with reports")
     parser.add_argument("--bucket_name", type=str, help="Bucket name of reports")
-    parser.add_argument(
-        "--encoder_path",
-        type=str,
-        default=None,
-        help="Path to the trained SBERT encoder",
-    )
     parser.add_argument("--lang", type=str, help="java/cpp")
     parser.add_argument(
         "--multi_stack", action="store_true", help="Enable multi stack status"
@@ -67,7 +46,7 @@ def main():
     parser.add_argument(
         "--train_days",
         type=int,
-        default=3850,
+        default=3500,
         required=False,
         help="Train days for the bucket",
     )
@@ -125,7 +104,7 @@ def main():
         lang=args.lang,
     )
 
-    if args.method == "s3m" or args.method == "dedupt" or args.method == "deepcrash":
+    if args.method == "llm":
         neural_issues(
             bucket_netbeans,
             max_len=None,
@@ -135,16 +114,14 @@ def main():
             method_name=args.method,
             lang=args.lang,
             multi_stack=args.multi_stack,
-            encoder_path=args.encoder_path,
+            encoder_path="",
             skip_training=args.skip_training,
             max_frames=max_frames,
         )
     else:
-        if args.method == "durfex":
-            trim_len = 2
-        else:
-            trim_len = 0
-        classic_issue(bucket_netbeans, [args.method], trim_len=trim_len)
+        raise ValueError(
+            f"Method {args.method} is not supported. Supported methods: {all_methods}"
+        )
 
     print("Time:", time() - start)
 

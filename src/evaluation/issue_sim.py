@@ -2,7 +2,8 @@ from typing import Callable, Dict, Iterable, List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.metrics import precision_recall_curve, precision_score, recall_score
+from sklearn.metrics import (precision_recall_curve, precision_score,
+                             recall_score)
 from tqdm import tqdm
 
 from evaluation.stack_sim import bootstrap_bin_metric, metric_in_time
@@ -168,6 +169,10 @@ def paper_metrics_iter(
                 aps.append(1 / (i + 1))
                 correct_top.append(i)
                 break
+        
+        if total_preds > 100:
+            print("Stopping early after 100 predictions")
+            break
 
     scores = {}
     scores["map"] = map_metric(preds_list)

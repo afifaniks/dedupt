@@ -101,6 +101,7 @@ class SiamSentTransformerModelMultiStack(NeuralModel):
         super(SiamSentTransformerModelMultiStack, self).__init__()
         self.encoder = encoder
         self.hidden_dim = hidden_dim
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         # self.fc = nn.Linear(self.encoder.out_dim(), self.hidden_dim)
         self.classifier = StackClassifier(
             input_dim=self.encoder.out_dim() * 2, **kwargs
@@ -127,6 +128,7 @@ class SiamSentTransformerModelMultiStack(NeuralModel):
 
     def aggregate_embeddings(self, stack_id):
         embeddings = self.encoder.forward(stack_id)
+        embeddings = embeddings.cuda(self.device)
         return embeddings  # torch.mean(embeddings, dim=0)
 
     def find_most_similar_pair(self, embeddings1, embeddings2):

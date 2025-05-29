@@ -7,6 +7,8 @@ from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 from tqdm import tqdm
 
+from methods.neural.siam.reranker import rerank_with_llm
+
 
 class ChromaVectorStoreManager:
     def __init__(
@@ -14,7 +16,8 @@ class ChromaVectorStoreManager:
         persist_directory: str,
         meta_path: str,
         bucket_name: str,
-        embedding_model_name: str = "text-embedding-3-small"
+        embedding_model_name: str = "text-embedding-3-small",
+        rerank: bool = False
     ):
         self.persist_directory = persist_directory
         os.makedirs(self.persist_directory, exist_ok=True)
@@ -23,6 +26,7 @@ class ChromaVectorStoreManager:
         self.embedding_client = OpenAIEmbeddings(model=embedding_model_name)
         self.vectorstore = None
         self.metadata = []
+        self.rerank = rerank
 
     def _add_documents_in_batches(self, documents: List[Document], batch_size: int = 32):
         print(f"Adding {len(documents)} documents in batches of {batch_size}...")
@@ -73,7 +77,7 @@ class ChromaVectorStoreManager:
         self, 
         query_stack: str, 
         candidate_ids: List[int], 
-        k: int = 11
+        k: int = 20
     ) -> List[Tuple[int, float]]:
         """
         Return top-k similar stack trace IDs (and scores) among the specified candidate_ids.
@@ -97,5 +101,12 @@ class ChromaVectorStoreManager:
         )
 
         # Results already come with similarity scores between 0 and 1
-        return [(doc.metadata["id"], score) for doc, score in results]
+        if not self.rerank:
+            return [(doc.metadata["id"], score) for doc, score in results]
+        
+        results = [(doc.metadata["id"], score, doc.page_content) for doc, score in results]
+
+        reranked_results = rerank_with_llm(query_stack, results)
+
+        return reranked_results
 

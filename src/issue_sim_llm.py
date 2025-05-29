@@ -7,7 +7,7 @@ from data.buckets.bucket_data import BucketData
 from data.buckets.issues_data import BucketDataset
 from evaluation.issue_sim import paper_metrics_iter
 from methods.classic.hyperopt import PairStackBasedIssueHyperoptModel
-from methods.neural.train_issue_sim_rag import train_issue_model
+from methods.neural.train_issue_sim_llm import train_issue_model
 from methods.pair_stack_issue_model import (MaxIssueScorer,
                                             PairStackBasedSimModel)
 from models_factory import create_classic_model, create_neural_model

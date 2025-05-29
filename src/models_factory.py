@@ -16,6 +16,7 @@ from methods.neural import device
 from methods.neural.neural_base import NeuralModel
 from methods.neural.siam.aggregation import ConcatAggregation
 from methods.neural.siam.encoders import (DeepCrashEncoder, LSTMEncoder,
+                                          OpenAIEncoder,
                                           TrainableTransformerEncoder,
                                           TransformerEncoder,
                                           TransformerEncoderCodebert)
@@ -94,12 +95,22 @@ def create_neural_model(
                 stack_loader, stack2seq, SimpleTokenizer(), min_freq=0, max_len=max_len
             )
 
-        encoder = TransformerEncoder(
-            coder=coder,
-            stack_formatter=stack_formatter,
-            model_name=encoder_path,
-            multi_stack=multi_stack,
-        )
+        if encoder_path.lower() == "text-embedding-3-small":
+            print(f"Using OpenAIEncoder: {encoder_path}")
+            encoder = OpenAIEncoder(
+                coder=coder,
+                stack_formatter=stack_formatter,
+                model_name=encoder_path,
+                multi_stack=multi_stack,
+                cache_dir=f"embedding_cache/{bucket_name}",
+            )
+        else:
+            encoder = TransformerEncoder(
+                coder=coder,
+                stack_formatter=stack_formatter,
+                model_name=encoder_path,
+                multi_stack=multi_stack,
+            )
 
         # if "train" in encoder_path:
         #     print("Using Trainable transformer encoder")

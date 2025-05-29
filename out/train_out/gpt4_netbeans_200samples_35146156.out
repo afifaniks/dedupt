@@ -1,317 +1,0 @@
-/home/mdafifal.mamun/miniconda3/envs/tracesim/lib/python3.8/site-packages/langchain/chat_models/__init__.py:33: LangChainDeprecationWarning: Importing chat models from langchain is deprecated. Importing from langchain will no longer be supported as of langchain==0.2.0. Please import from langchain-community instead:
-
-`from langchain_community.chat_models import ChatOpenAI`.
-
-To install langchain-community run `pip install -U langchain-community`.
-  warnings.warn(
-/home/mdafifal.mamun/research/S3M/src/methods/neural/siam/encoders.py:19: LangChainDeprecationWarning: Importing OpenAIEmbeddings from langchain.embeddings is deprecated. Please replace deprecated imports:
-
->> from langchain.embeddings import OpenAIEmbeddings
-
-with new imports of:
-
->> from langchain_community.embeddings import OpenAIEmbeddings
-You can use the langchain cli to **automatically** upgrade many imports. Please see documentation here <https://python.langchain.com/v0.2/docs/versions/v0_2/>
-  from langchain.embeddings import OpenAIEmbeddings
-/home/mdafifal.mamun/research/S3M/src/methods/neural/siam/encoders.py:20: LangChainDeprecationWarning: Importing FAISS from langchain.vectorstores is deprecated. Please replace deprecated imports:
-
->> from langchain.vectorstores import FAISS
-
-with new imports of:
-
->> from langchain_community.vectorstores import FAISS
-You can use the langchain cli to **automatically** upgrade many imports. Please see documentation here <https://python.langchain.com/v0.2/docs/versions/v0_2/>
-  from langchain.vectorstores import FAISS
-Device: cuda
-Arguments: Namespace(bucket_name='netbeans', data_path='/home/mdafifal.mamun/research/S3M/dataset/EMSE_data/netbeans_2016/netbeans_stacktraces.json', encoder_path='none', lang='java', loss='ranknet', max_frames=-1, method='llm', multi_stack=True, skip_training=False, test_days=700, train_days=3500, trim_len=0, val_days=140, warmup_days=350)
-Max frames: 10
-Dataset: netbeans
-Method: llm
-Trim:  0
-train_days 3500 test_days 700 warmup_days 350 val_days 140 loss_name ranknet
-Stack loader:  Java json_loader_multi
-Selected formatter: java num_frames: 10
-Vectorstore already exists. Skipping fit.
-Loading Chroma index from ./netbeans_chroma_index...
-Choosen model: SiamSentLLM()
-Test
-Calculating metrics...
-Predicting: 0it [00:00, ?it/s]Predicting: 1it [00:35, 35.88s/it]Predicting: 2it [01:07, 33.57s/it]Predicting: 3it [01:41, 33.82s/it]Predicting: 4it [02:16, 34.10s/it]Predicting: 5it [02:50, 34.04s/it]Predicting: 6it [03:22, 33.47s/it]Predicting: 7it [03:55, 33.16s/it]Predicting: 8it [04:28, 33.04s/it]Predicting: 9it [05:01, 33.27s/it]Predicting: 10it [05:35, 33.52s/it]Predicting: 11it [06:07, 32.82s/it]Predicting: 12it [06:40, 32.97s/it]Predicting: 13it [07:13, 32.92s/it]Predicting: 14it [07:45, 32.60s/it]Predicting: 15it [08:16, 32.27s/it]Predicting: 16it [08:47, 31.79s/it]Predicting: 17it [09:19, 31.85s/it]Predicting: 18it [09:50, 31.60s/it]Predicting: 19it [10:22, 31.89s/it]Predicting: 20it [10:55, 31.96s/it]Predicting: 21it [11:27, 32.12s/it]Predicting: 22it [12:00, 32.36s/it]Predicting: 23it [12:36, 33.35s/it]Predicting: 24it [13:09, 33.24s/it]Predicting: 25it [13:41, 32.95s/it]Predicting: 26it [14:15, 33.19s/it]Predicting: 27it [14:47, 32.91s/it]Predicting: 28it [15:18, 32.40s/it]Predicting: 29it [15:48, 31.68s/it]Predicting: 30it [16:21, 32.10s/it]Predicting: 31it [16:52, 31.86s/it]Predicting: 32it [17:27, 32.64s/it]Predicting: 33it [18:00, 32.89s/it]Predicting: 34it [18:32, 32.46s/it]Predicting: 35it [19:03, 32.14s/it]Predicting: 36it [19:35, 32.01s/it]Predicting: 37it [20:08, 32.30s/it]Predicting: 38it [20:42, 32.79s/it]Predicting: 39it [21:16, 33.21s/it]Predicting: 40it [22:02, 37.09s/it]Predicting: 41it [22:36, 36.02s/it]Predicting: 42it [23:09, 35.16s/it]Predicting: 43it [23:45, 35.53s/it]Predicting: 44it [24:21, 35.54s/it]Predicting: 45it [24:55, 34.99s/it]Predicting: 46it [25:29, 34.97s/it]Predicting: 47it [26:02, 34.28s/it]Predicting: 48it [26:32, 33.07s/it]Predicting: 49it [27:05, 32.83s/it]Predicting: 50it [27:37, 32.59s/it]Predicting: 51it [28:08, 32.07s/it]Predicting: 52it [28:38, 31.66s/it]Predicting: 53it [29:10, 31.57s/it]Predicting: 54it [29:43, 31.99s/it]Predicting: 55it [30:18, 33.05s/it]Predicting: 56it [31:02, 36.25s/it]Predicting: 57it [31:44, 38.15s/it]Predicting: 58it [32:17, 36.62s/it]Predicting: 59it [32:51, 35.77s/it]Predicting: 60it [33:23, 34.48s/it]Predicting: 61it [33:56, 34.24s/it]Predicting: 62it [34:29, 33.84s/it]Predicting: 63it [35:16, 37.68s/it]Predicting: 64it [35:48, 36.05s/it]Predicting: 65it [36:25, 36.34s/it]Predicting: 66it [36:55, 34.46s/it]Predicting: 67it [37:28, 33.94s/it]Predicting: 68it [38:03, 34.13s/it]Predicting: 69it [38:38, 34.61s/it]Predicting: 70it [39:11, 34.09s/it]Predicting: 71it [39:42, 33.20s/it]Predicting: 72it [40:14, 32.71s/it]Predicting: 73it [40:45, 32.38s/it]Predicting: 74it [41:22, 33.60s/it]Predicting: 75it [41:54, 33.09s/it]Predicting: 76it [42:24, 32.35s/it]Predicting: 77it [43:01, 33.73s/it]Predicting: 78it [43:33, 33.12s/it]Predicting: 79it [44:05, 32.76s/it]Predicting: 80it [44:36, 32.23s/it]Predicting: 81it [45:06, 31.66s/it]Predicting: 82it [45:37, 31.43s/it]Predicting: 83it [46:09, 31.44s/it]Predicting: 84it [46:48, 33.78s/it]Predicting: 85it [47:20, 33.34s/it]Predicting: 86it [47:53, 33.02s/it]Predicting: 87it [48:24, 32.57s/it]Predicting: 88it [48:57, 32.77s/it]Predicting: 89it [49:29, 32.38s/it]Predicting: 90it [50:01, 32.41s/it]Predicting: 91it [50:35, 32.71s/it]Predicting: 92it [51:16, 35.22s/it]Predicting: 93it [51:48, 34.32s/it]Predicting: 94it [52:20, 33.67s/it]Predicting: 95it [52:53, 33.41s/it]Predicting: 96it [53:25, 32.98s/it]Predicting: 97it [54:00, 33.69s/it]Predicting: 98it [54:43, 36.35s/it]Predicting: 99it [55:15, 35.14s/it]Predicting: 100it [55:47, 34.04s/it]Predicting: 101it [56:25, 35.27s/it]Predicting: 102it [56:59, 34.86s/it]Predicting: 103it [57:30, 33.70s/it]Predicting: 104it [58:00, 32.72s/it]Predicting: 105it [58:31, 32.04s/it]Predicting: 106it [59:11, 34.47s/it]Predicting: 107it [59:42, 33.39s/it]Predicting: 108it [1:00:17, 33.98s/it]Predicting: 109it [1:00:49, 33.44s/it]Predicting: 110it [1:01:27, 34.87s/it]Predicting: 111it [1:02:08, 36.66s/it]Predicting: 112it [1:02:39, 35.05s/it]Predicting: 113it [1:03:14, 34.94s/it]Predicting: 114it [1:03:47, 34.41s/it]Predicting: 115it [1:04:17, 32.95s/it]Predicting: 115it [1:04:38, 33.72s/it]
-Predicting for issue 171109 with 7570 stacks
-Filtered candidate ID count: 7570
-Predicting for issue 171120 with 7553 stacks
-Filtered candidate ID count: 7553
-Predicting for issue 171146 with 7560 stacks
-Filtered candidate ID count: 7560
-Predicting for issue 171173 with 7549 stacks
-Filtered candidate ID count: 7549
-Predicting for issue 171192 with 7546 stacks
-Filtered candidate ID count: 7546
-Predicting for issue 171215 with 7545 stacks
-Filtered candidate ID count: 7545
-Predicting for issue 171246 with 7543 stacks
-Filtered candidate ID count: 7543
-Predicting for issue 171268 with 7547 stacks
-Filtered candidate ID count: 7547
-Predicting for issue 171313 with 7529 stacks
-Filtered candidate ID count: 7529
-Predicting for issue 171365 with 7529 stacks
-Filtered candidate ID count: 7529
-Processed 10 predictions
-Predicting for issue 171411 with 7525 stacks
-Filtered candidate ID count: 7525
-Predicting for issue 171421 with 7527 stacks
-Filtered candidate ID count: 7527
-Predicting for issue 171452 with 7526 stacks
-Filtered candidate ID count: 7526
-Predicting for issue 171505 with 7508 stacks
-Filtered candidate ID count: 7508
-Predicting for issue 171547 with 7493 stacks
-Filtered candidate ID count: 7493
-Predicting for issue 171576 with 7494 stacks
-Filtered candidate ID count: 7494
-Predicting for issue 171607 with 7486 stacks
-Filtered candidate ID count: 7486
-Predicting for issue 171640 with 7491 stacks
-Filtered candidate ID count: 7491
-Predicting for issue 171651 with 7494 stacks
-Filtered candidate ID count: 7494
-Predicting for issue 171660 with 7497 stacks
-Filtered candidate ID count: 7497
-Processed 20 predictions
-Predicting for issue 171668 with 7492 stacks
-Filtered candidate ID count: 7492
-Predicting for issue 171676 with 7493 stacks
-Filtered candidate ID count: 7493
-Predicting for issue 171693 with 7492 stacks
-Filtered candidate ID count: 7492
-Predicting for issue 171695 with 7487 stacks
-Filtered candidate ID count: 7487
-Predicting for issue 171756 with 7490 stacks
-Filtered candidate ID count: 7490
-Predicting for issue 171758 with 7490 stacks
-Filtered candidate ID count: 7490
-Predicting for issue 171768 with 7497 stacks
-Filtered candidate ID count: 7497
-Predicting for issue 171804 with 7482 stacks
-Filtered candidate ID count: 7482
-Predicting for issue 171846 with 7467 stacks
-Filtered candidate ID count: 7467
-Predicting for issue 171850 with 7468 stacks
-Filtered candidate ID count: 7468
-Processed 30 predictions
-Predicting for issue 171852 with 7469 stacks
-Filtered candidate ID count: 7469
-Predicting for issue 171882 with 7457 stacks
-Filtered candidate ID count: 7457
-Predicting for issue 171896 with 7460 stacks
-Filtered candidate ID count: 7460
-Predicting for issue 171899 with 7461 stacks
-Filtered candidate ID count: 7461
-Predicting for issue 171902 with 7461 stacks
-Filtered candidate ID count: 7461
-Predicting for issue 171903 with 7461 stacks
-Filtered candidate ID count: 7461
-Predicting for issue 171916 with 7460 stacks
-Filtered candidate ID count: 7460
-Predicting for issue 171941 with 7454 stacks
-Filtered candidate ID count: 7454
-Predicting for issue 171944 with 7455 stacks
-Filtered candidate ID count: 7455
-Predicting for issue 171954 with 7456 stacks
-Filtered candidate ID count: 7456
-Processed 40 predictions
-Predicting for issue 171962 with 7458 stacks
-Filtered candidate ID count: 7458
-Predicting for issue 171968 with 7457 stacks
-Filtered candidate ID count: 7457
-Predicting for issue 171975 with 7459 stacks
-Filtered candidate ID count: 7459
-Predicting for issue 172009 with 7460 stacks
-Filtered candidate ID count: 7460
-Predicting for issue 172011 with 7459 stacks
-Filtered candidate ID count: 7459
-Predicting for issue 172018 with 7460 stacks
-Filtered candidate ID count: 7460
-Predicting for issue 172020 with 7460 stacks
-Filtered candidate ID count: 7460
-Predicting for issue 172063 with 7466 stacks
-Filtered candidate ID count: 7466
-Predicting for issue 172096 with 7455 stacks
-Filtered candidate ID count: 7455
-Predicting for issue 172099 with 7446 stacks
-Filtered candidate ID count: 7446
-Processed 50 predictions
-Predicting for issue 172104 with 7445 stacks
-Filtered candidate ID count: 7445
-Predicting for issue 172124 with 7451 stacks
-Filtered candidate ID count: 7451
-Predicting for issue 172152 with 7448 stacks
-Filtered candidate ID count: 7448
-Predicting for issue 172169 with 7451 stacks
-Filtered candidate ID count: 7451
-Predicting for issue 172193 with 7447 stacks
-Filtered candidate ID count: 7447
-Predicting for issue 172208 with 7445 stacks
-Filtered candidate ID count: 7445
-Predicting for issue 172220 with 7448 stacks
-Filtered candidate ID count: 7448
-Predicting for issue 172222 with 7449 stacks
-Filtered candidate ID count: 7449
-Predicting for issue 172264 with 7428 stacks
-Filtered candidate ID count: 7428
-Predicting for issue 172273 with 7429 stacks
-Filtered candidate ID count: 7429
-Processed 60 predictions
-Predicting for issue 172353 with 7432 stacks
-Filtered candidate ID count: 7432
-Predicting for issue 172411 with 7435 stacks
-Filtered candidate ID count: 7435
-Predicting for issue 172435 with 7429 stacks
-Filtered candidate ID count: 7429
-Predicting for issue 172469 with 7435 stacks
-Filtered candidate ID count: 7435
-Predicting for issue 172470 with 7432 stacks
-Filtered candidate ID count: 7432
-Predicting for issue 172479 with 7432 stacks
-Filtered candidate ID count: 7432
-Predicting for issue 172485 with 7434 stacks
-Filtered candidate ID count: 7434
-Predicting for issue 172510 with 7427 stacks
-Filtered candidate ID count: 7427
-Predicting for issue 172537 with 7431 stacks
-Filtered candidate ID count: 7431
-Predicting for issue 172547 with 7431 stacks
-Filtered candidate ID count: 7431
-Processed 70 predictions
-Predicting for issue 172562 with 7433 stacks
-Filtered candidate ID count: 7433
-Predicting for issue 172588 with 7437 stacks
-Filtered candidate ID count: 7437
-Predicting for issue 172597 with 7438 stacks
-Filtered candidate ID count: 7438
-Predicting for issue 172605 with 7437 stacks
-Filtered candidate ID count: 7437
-Predicting for issue 172608 with 7437 stacks
-Filtered candidate ID count: 7437
-Predicting for issue 172609 with 7438 stacks
-Filtered candidate ID count: 7438
-Predicting for issue 172615 with 7442 stacks
-Filtered candidate ID count: 7442
-Predicting for issue 172623 with 7440 stacks
-Filtered candidate ID count: 7440
-Predicting for issue 172630 with 7445 stacks
-Filtered candidate ID count: 7445
-Predicting for issue 172650 with 7452 stacks
-Filtered candidate ID count: 7452
-Processed 80 predictions
-Predicting for issue 172652 with 7454 stacks
-Filtered candidate ID count: 7454
-Predicting for issue 172659 with 7455 stacks
-Filtered candidate ID count: 7455
-Predicting for issue 172669 with 7459 stacks
-Filtered candidate ID count: 7459
-Predicting for issue 172680 with 7462 stacks
-Filtered candidate ID count: 7462
-Predicting for issue 172682 with 7459 stacks
-Filtered candidate ID count: 7459
-Predicting for issue 172706 with 7462 stacks
-Filtered candidate ID count: 7462
-Predicting for issue 172717 with 7461 stacks
-Filtered candidate ID count: 7461
-Predicting for issue 172719 with 7460 stacks
-Filtered candidate ID count: 7460
-Predicting for issue 172734 with 7463 stacks
-Filtered candidate ID count: 7463
-Predicting for issue 172757 with 7454 stacks
-Filtered candidate ID count: 7454
-Processed 90 predictions
-Predicting for issue 172760 with 7454 stacks
-Filtered candidate ID count: 7454
-Predicting for issue 172786 with 7452 stacks
-Filtered candidate ID count: 7452
-Predicting for issue 172796 with 7457 stacks
-Filtered candidate ID count: 7457
-Predicting for issue 172816 with 7456 stacks
-Filtered candidate ID count: 7456
-Predicting for issue 172825 with 7457 stacks
-Filtered candidate ID count: 7457
-Predicting for issue 172838 with 7456 stacks
-Filtered candidate ID count: 7456
-Predicting for issue 172862 with 7447 stacks
-Filtered candidate ID count: 7447
-Predicting for issue 172871 with 7448 stacks
-Filtered candidate ID count: 7448
-Predicting for issue 172878 with 7451 stacks
-Filtered candidate ID count: 7451
-Predicting for issue 172914 with 7452 stacks
-Filtered candidate ID count: 7452
-Processed 100 predictions
-Predicting for issue 172941 with 7455 stacks
-Filtered candidate ID count: 7455
-Predicting for issue 172975 with 7449 stacks
-Filtered candidate ID count: 7449
-Predicting for issue 173001 with 7456 stacks
-Filtered candidate ID count: 7456
-Predicting for issue 173004 with 7457 stacks
-Filtered candidate ID count: 7457
-Predicting for issue 173016 with 7457 stacks
-Filtered candidate ID count: 7457
-Predicting for issue 173045 with 7466 stacks
-Filtered candidate ID count: 7466
-Predicting for issue 173051 with 7463 stacks
-Filtered candidate ID count: 7463
-Predicting for issue 173053 with 7463 stacks
-Filtered candidate ID count: 7463
-Predicting for issue 173067 with 7461 stacks
-Filtered candidate ID count: 7461
-Predicting for issue 173096 with 7454 stacks
-Filtered candidate ID count: 7454
-Processed 110 predictions
-Predicting for issue 173106 with 7450 stacks
-Filtered candidate ID count: 7450
-Predicting for issue 173162 with 7379 stacks
-Filtered candidate ID count: 7379
-Predicting for issue 173164 with 7381 stacks
-Filtered candidate ID count: 7381
-Predicting for issue 173166 with 7382 stacks
-Filtered candidate ID count: 7382
-Predicting for issue 173217 with 7365 stacks
-Filtered candidate ID count: 7365
-Predicting for issue 173218 with 7365 stacks
-Traceback (most recent call last):
-  File "/home/mdafifal.mamun/research/S3M/src/main_rag.py", line 157, in <module>
-    main()
-  File "/home/mdafifal.mamun/research/S3M/src/main_rag.py", line 133, in main
-    neural_issues(
-  File "/home/mdafifal.mamun/research/S3M/src/issue_sim_rag.py", line 71, in neural_issues
-    train_issue_model(
-  File "/home/mdafifal.mamun/research/S3M/src/methods/neural/train_issue_sim_rag.py", line 96, in train_issue_model
-    log_all_data_scores(sim_stack_model, data_gen)
-  File "/home/mdafifal.mamun/research/S3M/src/methods/neural/train_issue_sim_rag.py", line 85, in log_all_data_scores
-    paper_metrics_iter(test_preds)
-  File "/home/mdafifal.mamun/research/S3M/src/evaluation/issue_sim.py", line 161, in paper_metrics_iter
-    for _, true_is_id, is_scores in preds:
-  File "/home/mdafifal.mamun/research/S3M/src/methods/pair_stack_issue_model.py", line 107, in predict
-    pred_issues, _ = self.predict_all(event.st_id, event.issues)
-  File "/home/mdafifal.mamun/research/S3M/src/methods/pair_stack_issue_model.py", line 93, in predict_all
-    preds = self.stack_model.predict(st_id, [st.id for st in all_stacks])
-  File "/home/mdafifal.mamun/research/S3M/src/methods/neural/siam/siam_network.py", line 536, in predict
-    results = self.encoder.forward(anchor_id, stack_ids)
-  File "/home/mdafifal.mamun/research/S3M/src/methods/neural/siam/openai_encoder.py", line 65, in forward
-    candidates = self.vector_manager.query_similar_stack_ids(content, candidate_ids)
-  File "/home/mdafifal.mamun/research/S3M/src/methods/neural/siam/vector_manager.py", line 94, in query_similar_stack_ids
-    query_embedding = self.embedding_client.embed_query(query_stack)
-  File "/home/mdafifal.mamun/miniconda3/envs/tracesim/lib/python3.8/site-packages/langchain_openai/embeddings/base.py", line 632, in embed_query
-    return self.embed_documents([text])[0]
-  File "/home/mdafifal.mamun/miniconda3/envs/tracesim/lib/python3.8/site-packages/langchain_openai/embeddings/base.py", line 592, in embed_documents
-    return self._get_len_safe_embeddings(texts, engine=engine)
-  File "/home/mdafifal.mamun/miniconda3/envs/tracesim/lib/python3.8/site-packages/langchain_openai/embeddings/base.py", line 490, in _get_len_safe_embeddings
-    response = self.client.create(
-  File "/home/mdafifal.mamun/miniconda3/envs/tracesim/lib/python3.8/site-packages/openai/resources/embeddings.py", line 129, in create
-    return self._post(
-  File "/home/mdafifal.mamun/miniconda3/envs/tracesim/lib/python3.8/site-packages/openai/_base_client.py", line 1239, in post
-    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
-  File "/home/mdafifal.mamun/miniconda3/envs/tracesim/lib/python3.8/site-packages/openai/_base_client.py", line 1034, in request
-    raise self._make_status_error_from_response(err.response) from None
-openai.RateLimitError: Error code: 429 - {'error': {'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.', 'type': 'insufficient_quota', 'param': None, 'code': 'insufficient_quota'}}

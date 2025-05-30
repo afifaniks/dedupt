@@ -77,14 +77,16 @@ Rest of the baselines can be ran, using the following this repository and README
 # Additional Results
 ### Table 1: Comparison of the LLM-based approach and ours on different datasets.
 
-| Dataset   | Sample Size      | Approach                   | Embedding Model         | MRR   | RR@1  | RR@5  |
-|-----------|------------------|----------------------------|--------------------------|-------|-------|-------|
-| Ubuntu    | Full test set    | Vector Database            | text-embedding-small-3   | 0.118 | 0.000 | 0.103 |
-|           |                  | Vector Database + GPT-4o   | text-embedding-small-3   | 0.584 | 0.427 | 0.761 |
-|           |                  | Ours                        | bge-base-en              | 0.786 | 0.744 | 0.838 |
-| Netbeans  | 100 test samples | Vector Database            | text-embedding-small-3   | 0.121 | 0.000 | 0.101 |
-|           |                  | Vector Database + GPT-4o   | text-embedding-small-3   | 0.586 | 0.422 | 0.825 |
-|           |                  | Ours                        | bge-base-en              | 0.752 | 0.651 | 0.863 |
+#### Table 1: Comparison of the LLM-based approach and ours on different datasets.
+
+| Dataset   | Approach                   | Embedding Model         | MRR   | RR@1  | RR@5  |
+|-----------|----------------------------|--------------------------|-------|-------|-------|
+| Ubuntu    | VectorDB            | text-embedding-3-small   | 0.118 | 0.000 | 0.103 |
+|           | VectorDB + GPT-4o   | text-embedding-3-small   | 0.584 | 0.427 | 0.761 |
+|           |Ours                        | bge-base-en              | 0.786 | 0.744 | 0.838 |
+| Netbeans  | VectorDB            | text-embedding-3-small   | 0.121 | 0.000 | 0.101 |
+|           | VectorDB + GPT-4o   | text-embedding-3-small   | 0.586 | 0.422 | 0.825 |
+|           | Ours                        | bge-base-en              | 0.771 | 0.681 | 0.918 |
 
 ### Table 2: Comparison of performance when CodeBERT is used as an embedding model.
 

@@ -86,7 +86,7 @@ Rest of the baselines can be ran, using the following this repository and README
 |           |Ours                        | bge-base-en              | 0.786 | 0.744 | 0.838 |
 | Netbeans  | VectorDB            | text-embedding-3-small   | 0.121 | 0.000 | 0.101 |
 |           | VectorDB + GPT-4o   | text-embedding-3-small   | 0.586 | 0.422 | 0.825 |
-|           | Ours                        | bge-base-en              | 0.771 | 0.681 | 0.918 |
+|           | Ours                        | bge-base-en              | 0.771 | 0.681 | 0.878 |
 
 ### Table 2: Comparison of performance when CodeBERT is used as an embedding model.
 

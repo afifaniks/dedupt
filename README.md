@@ -70,7 +70,7 @@ Please note that, there is no additional training required for this pipeline. Th
 # Baselines
 To run baselines like S3M or DeepCrash, just pass one of the method name:
 ```bash
-python src/main.py {s3m, deepcrash} --data_path ${DATASET_ROOT}/netbeans_2016/netbeans_stacktraces.json --bucket_name netbeans --trim_len 0 --lang java --multi_stack --loss ranknet
+python src/main.py {s3m, deepcrash} --data_path ${DATASET_ROOT}/netbeans_2016/netbeans_stacktraces.json --bucket_name netbeans --trim_len 0 --lang java --loss ranknet
 ```
 Rest of the baselines can be ran, using the following this repository and README: https://github.com/irving-muller/TraceSim_EMSE
 

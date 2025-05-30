@@ -12,6 +12,16 @@ Before proceeding to the next steps, please download and extract the datasets in
 
 To run this project, we recommend using Python 3.8+ with a seperate conda environment.
 
+To create a new environment
+```bash
+conda create -n env_name python=3.8
+```
+
+Activate the environment:
+```bash
+conda activate env_name
+```
+
 Install requirements:
 ```bash
 pip install -r requirements.txt

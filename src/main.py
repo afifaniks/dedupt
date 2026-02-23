@@ -92,6 +92,14 @@ def main():
         required=False,
         help="Validation days for the bucket",
     )
+
+    parser.add_argument(
+        "--result_file",
+        type=str,
+        required=False,
+        default=None,
+        help="Location to save test predictions"
+    )
     args = parser.parse_args()
 
     print("Arguments:", args)
@@ -131,13 +139,14 @@ def main():
             max_len=None,
             trim_len=args.trim_len,
             loss_name=args.loss,
-            epochs=2,
+            epochs=4,
             method_name=args.method,
             lang=args.lang,
             multi_stack=args.multi_stack,
             encoder_path=args.encoder_path,
             skip_training=args.skip_training,
             max_frames=max_frames,
+            result_file=args.result_file
         )
     else:
         if args.method == "durfex":

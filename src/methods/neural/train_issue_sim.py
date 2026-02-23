@@ -124,7 +124,7 @@ def log_metrics_auc(
     exit()
 
 
-def log_all_data_scores(sim_stack_model: NeuralModel, data_gen):
+def log_all_data_scores(sim_stack_model: NeuralModel, data_gen, result_file=None):
     sim_stack_model.eval()
     data_gen.reset()
     ps_model = PairStackBasedSimModel(
@@ -140,7 +140,7 @@ def log_all_data_scores(sim_stack_model: NeuralModel, data_gen):
     test_preds = ps_model.predict(data_gen.test())
     print("Test")
     # te_score = score_model(test_preds, model_name="Test " + sim_stack_model.name())
-    paper_metrics_iter(test_preds)
+    paper_metrics_iter(test_preds, result_file)
 
     print()
 
@@ -157,6 +157,7 @@ def train_issue_model(
     writer=None,
     period: int = 25,
     skip_training=False,
+    result_file=None
 ):
     if loss_name == "point":
         train_selector = RandomPairSimSelector(selection_from_event_num)
@@ -250,7 +251,7 @@ def train_issue_model(
         sim_stack_model.encoder.enable_cache()
 
     # To enable auc calculation comment out the following line and uncomment the next line
-    log_all_data_scores(sim_stack_model, data_gen)
+    log_all_data_scores(sim_stack_model, data_gen, result_file)
     # log_metrics_auc(sim_stack_model, data_gen, bucket_data)
 
     if writer:

@@ -1,5 +1,6 @@
 from time import time
 from typing import Optional
+import json
 
 import torch
 
@@ -78,6 +79,7 @@ def neural_issues(
     encoder_path: str = None,
     skip_training: bool = False,
     max_frames: int = -1,
+    result_file: str = None
 ):
     set_seed(random_seed)
     print("Dataset:", bucket_data.name)
@@ -126,6 +128,7 @@ def neural_issues(
         selection_from_event_num=4,
         writer=None,
         skip_training=skip_training,
+        result_file=result_file
     )
 
     ps_model = PairStackBasedSimModel(model, MaxIssueScorer())

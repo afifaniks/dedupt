@@ -1,5 +1,6 @@
+import json
 from typing import Callable, Dict, Iterable, List, Tuple
-
+import time
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import (precision_recall_curve, precision_score,
@@ -150,7 +151,7 @@ def paper_metrics(preds: List[Tuple[int, Dict[int, float]]]) -> Dict[str, float]
 
 
 def paper_metrics_iter(
-    preds: Iterable[Tuple[int, int, Dict[int, float]]]
+    preds: Iterable[Tuple[int, int, Dict[int, float]]], result_file = None
 ) -> Dict[str, float]:
     aps = []
     correct_top = []
@@ -158,7 +159,9 @@ def paper_metrics_iter(
     preds_list = []
     print("Calculating metrics...")
 
-    for _, true_is_id, is_scores in preds:
+    preds_dict = {}
+
+    for st_id, true_is_id, is_scores in preds:
         preds_list.append((true_is_id, is_scores))
         total_preds += 1
         if (total_preds % 10) == 0:
@@ -169,10 +172,19 @@ def paper_metrics_iter(
                 aps.append(1 / (i + 1))
                 correct_top.append(i)
                 break
-        
-        if total_preds > 100:
-            print("Stopping early after 100 predictions")
-            break
+        dummy_scores = {int(k): float(v) for k, v in sorted_scores[:25]}
+        preds_dict[st_id] = {
+            "bug_id": st_id,
+            "actual_duplicate_id": true_is_id,
+            "predictions": dummy_scores,
+        }
+        # if total_preds > 20:
+        #     print("Stopping early after 100 predictions")
+    
+    if result_file:
+        print("Saving predictions...")
+        with open(f"{result_file}_{time.time()}.json", "w") as f:
+            json.dump(preds_dict, f, indent=2)
 
     scores = {}
     scores["map"] = map_metric(preds_list)
